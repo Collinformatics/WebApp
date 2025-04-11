@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, render_template_string, request
+import numpy as np
 import pandas as pd
 import sys
 
@@ -9,16 +10,26 @@ AA = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I',
               'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V']
 
 def subsDefault():
-    subs = {'VVLQAGCK': 22076,
-            'LILQSVGH': 21783,
-            'VALQSGCK': 20331,
-            'LNLQGGCK': 19201,
-            'IGLQAGCK': 16310,
-            'VGLQAGCK': 15449,
-            'LFLQAGCK': 12375,
-            'VVLQCGCK': 10330,
-            'FVLQAAGE': 10330,
-            'VVMQCACK': 2576,
+    subs = {'VVLQAGTK': 17076,
+            'LILQSVGA': 16783,
+            'VALQSACW': 16331,
+            'LNLQGILD': 15201,
+            'IYLQALMP': 15010,
+            'TSLQARKS': 14449,
+            'AFLQAHFT': 13175,
+            'VTLQCTYS': 13330,
+            'VLLQAKQL': 12201,
+            'LVLQANPC': 12010,
+            'IMLQGVIW': 11449,
+            'AGLQASAH': 11175,
+            'AHLQSENE': 10330,
+            'MVLQGDVN': 9201,
+            'IGLQCNEV': 9010,
+            'VCMQAQVQ': 8449,
+            'AELQSWHF': 8175,
+            'CDLQCMWG': 7330,
+            'VWMQCSII': 7013,
+            'CVMQCCNM': 2576,
             }
     return subs
 
@@ -65,12 +76,26 @@ def evalAA(subs, subLen):
         totalSubs += count
         for index, aa in enumerate(sub):
             countedAA.loc[aa, pos[index]] += count
+    print(countedAA)
 
     # Evaluate: AA probability
     probAA = countedAA / totalSubs
 
     # Evaluate: Entropy
-    
+    entropy = pd.DataFrame(0.0, index=probAA.columns, columns=['ΔS'])
+    entropyMax = np.log2(len(AA))
+    for indexColumn in probAA.columns:
+        S = 0  # Reset entropy total for a new position
+        for indexRow, probRatio in probAA.iterrows():
+            prob = probRatio[indexColumn]
+            if prob == 0:
+                continue
+            else:
+                S += -prob * np.log2(prob)
+        entropy.loc[indexColumn, 'ΔS'] = entropyMax - S
+
+    print(f'Positional Entropy:\n{entropy}\n\nMax Entropy: '
+          f'{entropyMax.round(6)}\n')
 
     return probAA
 
@@ -112,7 +137,6 @@ def run():
         "NSubs": NSubs,
     }
 
-    print('Upload data')
     return jsonify(result)
 
 
