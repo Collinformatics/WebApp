@@ -60,7 +60,7 @@ def plotEntropy(prob, AA, enzymeName):
             edgecolor='black', linewidth=lineThickness, width=0.8)
     plt.xlabel('Substrate Position', fontsize=labelSizeAxis)
     plt.ylabel('Positional Entropy (ΔS)', fontsize=labelSizeAxis)
-    plt.title(f' {enzymeName}', fontsize=titleSize, fontweight='bold')
+    plt.title(f'{enzymeName}', fontsize=titleSize, fontweight='bold')
 
     # Set borders
     plt.subplots_adjust(top=0.923, bottom=0.124, left=0.096, right=0.943)
