@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, render_template_string, request
 import numpy as np
 import pandas as pd
+from figures import plotEntropy
 import sys
 
 
@@ -22,19 +23,20 @@ def subsDefault():
             'LVLQANPC': 12010,
             'IMLQGVIW': 11449,
             'AGLQASAH': 11175,
-            'AHLQSENE': 10330,
+            'MHLQSENE': 10330,
             'MVLQGDVN': 9201,
-            'IGLQCNEV': 9010,
-            'VCMQAQVQ': 8449,
-            'AELQSWHF': 8175,
-            'CDLQCMWG': 7330,
+            'YGLQCNEV': 9010,
+            'KCMQAQVQ': 8449,
+            'GELQSWHF': 8175,
+            'CDMQCMWG': 7330,
             'VWMQCSII': 7013,
-            'CVMQCCNM': 2576,
+            'VVFQCCNM': 2576,
             }
+
     return subs
 
 
-def countSubstrates(subs, defaultSubs):
+def processData(subs, enzymeName, defaultSubs):
     subLen = len(next(iter(subs)))
     if defaultSubs:
         # Count: Substrates
@@ -54,20 +56,8 @@ def countSubstrates(subs, defaultSubs):
     else:
         subsCounts = subs
 
-    # Evaluate: AA distributions
-    probAA = evalAA(subs, subLen)
-
-    # Create dataset
-    dataset = {}
-    dataset['substrates'] = subsCounts
-    dataset['probability'] = probAA
-
-    return dataset
-
-
-def evalAA(subs, subLen):
     # Define: Substrate positions
-    pos = [f'R{index+1}' for index in range(subLen)]
+    pos = [f'R{index + 1}' for index in range(subLen)]
 
     # Count AAs
     totalSubs = 0
@@ -76,35 +66,29 @@ def evalAA(subs, subLen):
         totalSubs += count
         for index, aa in enumerate(sub):
             countedAA.loc[aa, pos[index]] += count
-    print(countedAA)
 
     # Evaluate: AA probability
     probAA = countedAA / totalSubs
 
-    # Evaluate: Entropy
-    entropy = pd.DataFrame(0.0, index=probAA.columns, columns=['ΔS'])
-    entropyMax = np.log2(len(AA))
-    for indexColumn in probAA.columns:
-        S = 0  # Reset entropy total for a new position
-        for indexRow, probRatio in probAA.iterrows():
-            prob = probRatio[indexColumn]
-            if prob == 0:
-                continue
-            else:
-                S += -prob * np.log2(prob)
-        entropy.loc[indexColumn, 'ΔS'] = entropyMax - S
+    # Figure: Entropy
+    entropy, figEntropy = plotEntropy(probAA, AA, enzymeName)
 
-    print(f'Positional Entropy:\n{entropy}\n\nMax Entropy: '
-          f'{entropyMax.round(6)}\n')
+    # Create dataset
+    dataset = {}
+    dataset['substrates'] = subsCounts
+    dataset['probability'] = probAA
+    dataset['entropy'] = entropy
+    dataset['figEntropy'] = figEntropy
 
-    return probAA
+    return dataset
+
 
 
 @app.route('/run', methods=['POST'])
 def run():
     # Get file from the form
     try:
-        substrates = request.files['textFile']
+        substrates = request.files.get('textFile')
         loadFile = False
         if substrates:
             loadFile = True
@@ -122,19 +106,21 @@ def run():
     except Exception as e:
         return jsonify({"error": f"Error A: {str(e)}"}), 400
 
-    dataset = countSubstrates(substrates, loadFile)
 
     # Get other data from the form
     enzymeName = request.form.get('enzymeName')
     threshold = request.form.get('minS')
     NSubs = request.form.get('N')
 
+    # Evaluate: Data
+    dataset = processData(substrates, enzymeName, loadFile)
+
     result = {
         "fileReceived": substrates.filename if loadFile else False,
-        "substrates": substrates,
         "enzyme": enzymeName,
         "minS": threshold,
         "NSubs": NSubs,
+        "figEntropy": dataset['figEntropy']
     }
 
     return jsonify(result)
@@ -146,72 +132,6 @@ def home():
     <html>
         <head>
             <title>SNIPER</title>
-            <script>
-                function evaluateForm() {
-                    const enzymeName = document.getElementById('enzymeName').value;
-                    const minS = document.getElementById('minS').value;
-                    const N = document.getElementById('N').value;
-                    const substrates = document.getElementById('substrates').value;
-                    document.querySelector('input[name="textFile"]').files[0];
-                
-                    const formData = new FormData();
-                    formData.append('enzymeName', enzymeName);
-                    formData.append('minS', minS);
-                    formData.append('N', N);
-                    const textFile = document.querySelector('input[name="textFile"]').files[0];
-                    formData.append('textFile', textFile);
-                
-                    fetch('/run', {
-                        method: 'POST',
-                        body: formData  // Don't set Content-Type manually
-                                        // browser will handle it
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        const newDiv = document.createElement('div');
-                        newDiv.className = 'container';
-                        const formattedJSON = JSON.stringify(data, null, 2);
-                    
-                        let headerContent = '';
-                        if (data.fileReceived) {
-                            headerContent = `
-                                <p><strong>Enzyme:</strong> ${enzymeName}</p>
-                                <p><strong>Min:</strong> ${minS}</p>
-                                <p><strong>Top N:</strong> ${N}</p>
-                            `;
-                    
-                            // If substrates are counted in the response
-                            contentToShow = data.substrates || {};
-                        } else {
-                            headerContent = `
-                                <p>No file received.</p>
-                            substrates = subsDefault();
-                            `;
-                        }
-                        const formattedJSON = JSON.stringify(contentToShow, null, 2);
-                    
-                        newDiv.innerHTML = `
-                            <div class="div-header">Results:</div>
-                            ${headerContent}
-                            <pre style="text-align: left; 
-                                 background-color: {{ black }}; 
-                                 padding: 10px; 
-                                 border-radius: {{ borderRad }}}px; 
-                            </pre>
-                        `;
-                        document.body.appendChild(newDiv);
-                    })
-
-                    .catch(error => {
-                        console.error('Error:', error);
-                        const errorDiv = document.createElement('div');
-                        errorDiv.className = 'container';
-                        errorDiv.innerHTML = `<p style="color: red;">
-                            Error fetching results: ${error.message || error}</p>`;
-                        document.body.appendChild(errorDiv);
-                    });
-                }
-            </script>
             <style>
                 body {
                     background-color: {{ black }};
@@ -318,6 +238,78 @@ def home():
                 }
             </style>
         </head>
+        <script>
+            function evaluateForm(event) {
+                event?.preventDefault(); // Prevent any default form action
+        
+                const enzymeName = document.getElementById('enzymeName').value;
+                const minS = document.getElementById('minS').value;
+                const N = document.getElementById('N').value;
+                const textFileInput = document.querySelector('input[name="textFile"]');
+                const textFile = textFileInput.files[0];
+        
+                if (!enzymeName || !minS || !N) {
+                    alert("Please fill out all required fields.");
+                    return;
+                }
+        
+                const formData = new FormData();
+                formData.append('enzymeName', enzymeName);
+                formData.append('minS', minS);
+                formData.append('N', N);
+                if (textFile) {
+                    formData.append('textFile', textFile);
+                }
+        
+                fetch('/run', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error("Network response was not ok");
+                    return response.json();
+                })
+                .then(data => {
+                    const newDiv = document.createElement('div');
+                    newDiv.className = 'container';
+        
+                    let headerContent = '';
+                    if (data.fileReceived) {
+                        headerContent = `
+                            <p><strong>Enzyme:</strong> ${enzymeName}</p>
+                            <p><strong>Min:</strong> ${minS}</p>
+                            <p><strong>Top N:</strong> ${N}</p>
+                        `;
+                    } else {
+                        headerContent = `<p>Use default substrates.</p>`;
+                    }
+        
+                    newDiv.innerHTML = `
+                        <div class="div-header">Results:</div>
+                        ${headerContent}
+                    `;
+                    
+                    // Check if figEntropy is available and add it as an image
+                    if (data.figEntropy) {
+                        const imgElement = document.createElement('img');
+                        imgElement.src = 'data:image/png;base64,' + data.figEntropy;
+                        imgElement.alt = 'Entropy Plot';
+                        imgElement.style.maxWidth = '100%';  // Optional: control image size
+                        newDiv.appendChild(imgElement);
+                    }
+            
+                    document.body.appendChild(newDiv);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'container';
+                    errorDiv.innerHTML = `<p style="color: red;">
+                        Error fetching results: ${error.message}</p>`;
+                    document.body.appendChild(errorDiv);
+                });
+            }
+        </script>
         <body>
             <h1>{{ title|safe }}</h1>
             <h2>{{ header|safe }}</h2>
@@ -354,7 +346,7 @@ def home():
                         <input type="number" id="N" name="N" value="30" required>
                     </div>
                     
-                    <button type="submit">Evaluate</button>
+                    <button type="button" onclick="evaluateForm()">Submit</button>
                 </form>
             </div>
         </body>
