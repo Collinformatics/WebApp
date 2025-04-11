@@ -1,45 +1,36 @@
 from flask import Flask, jsonify, render_template_string, request
 
 
-inTitle = ('Specificity Network Identification via '
-           'Positional Entropy based Refinement (SNIPER)')
-
 
 app = Flask(__name__)
-
-
-@app.route('/upload', methods=['POST'])
-def upload():
-    fastaFile = request.files['fastaFile']
-    # process the uploaded file...
-    return f"Uploaded: {fastaFile.filename}"
-
 
 
 @app.route('/run', methods=['POST'])
 def run():
     try:
-        # Get data from the request
-        data = request.get_json()
-        enzymeName = data.get('enzymeName')
-        threshold = data.get('minS')
-        NSubs = data.get('N')
+        # Get file from the form
+        try:
+            substrates = request.files['fastaFile']
+        except Exception as e:
+            substrates = False
 
-        # Simulate some processing (replace this with your actual logic)
+        # Get other data from the form
+        enzymeName = request.form.get('enzymeName')
+        threshold = request.form.get('minS')
+        NSubs = request.form.get('N')
+
         result = {
-            "message": "Processed successfully",
+            "fileReceived": substrates.filename if substrates else False,
+            "fastq": substrates,
             "enzyme": enzymeName,
             "minS": threshold,
-            "NSubs": NSubs
+            "NSubs": NSubs,
         }
-        for key, value in result.items():
-            print(key, value)
 
-        # Return the result as a JSON response
+        print('Upload data')
         return jsonify(result)
 
     except Exception as e:
-        # Return error message as JSON
         return jsonify({"error": f"Error: {str(e)}"}), 400
 
 
@@ -91,21 +82,9 @@ def home():
                     display: flex;
                     flex-direction: column;
                     align-items: center;
-                    padding: {{ padTB }}px {{ padSide }}px {{ padTB }}px {{ padSide }}px;
-                    margin: {{ spacer }}px auto;
-                    margin-bottom: {{ marginB }}px;
-                }
-                .container2 {
-                    background-color: {{ grey }};
-                    font-size: 20px;
-                    text-align: center;
-                    border-radius: {{ borderRad }}px;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
                     padding: {{ padTB }}px {{ padSide }}px {{ marginB }}px {{ padSide }}px;
                     margin: {{ spacer }}px auto;
-                      margin-bottom: {{ marginB }}px;
+                    margin-bottom: {{ marginB }}px;
                 }
                 .div-header {
                     color: #23FF55;
@@ -118,13 +97,12 @@ def home():
                     background-color: {{ black }};
                     color: #101010;
                     font-size: {{ fontSize }}px;
-                    margin-bottom: {{ marginB }}px;
                     border: 2px solid {{ greyDark }};
                     border-radius: {{ borderRad }}px;
                     width: 100%;
                     max-width: 350px;
                     padding: {{ padInput }}px;
-                    
+                    margin-bottom: {{ padTB }}px;
                 }
                 button {
                     background-color: {{ green }};
@@ -173,32 +151,35 @@ def home():
                     const enzymeName = document.getElementById('enzymeName').value;
                     const minS = document.getElementById('minS').value;
                     const N = document.getElementById('N').value;
+                    const fastaFile = 
+                    document.querySelector('input[name="fastaFile"]').files[0];
+                
+                    const formData = new FormData();
+                    formData.append('enzymeName', enzymeName);
+                    formData.append('minS', minS);
+                    formData.append('N', N);
+                    formData.append('fastaFile', fastaFile);
                 
                     fetch('/run', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            enzymeName: enzymeName,
-                            threshold: minS,
-                            topN: N
-                        })
+                        body: formData  // Don't set Content-Type manually, browser will handle it
                     })
                     .then(response => response.json())
                     .then(data => {
-                        console.log("Response Data:", data);  // Log the data to ensure it's correct
-                    
                         const newDiv = document.createElement('div');
                         newDiv.className = 'container';
-                        const formattedJSON = JSON.stringify(data, null, 2); // pretty JSON
-                    
+                        const formattedJSON = JSON.stringify(data, null, 2);
                         newDiv.innerHTML = `
                             <div class="div-header">Results:</div>
                             <p><strong>Enzyme:</strong> ${enzymeName}</p>
                             <p><strong>Threshold:</strong> ${minS}</p>
                             <p><strong>Top N:</strong> ${N}</p>
-                            <pre style="text-align: left; background-color: #1a1a1a; padding: 10px; border-radius: 8px; overflow-x: auto;">${formattedJSON}</pre>
+                            <pre style="text-align: left; 
+                                 background-color: #1a1a1a; 
+                                 padding: 10px; 
+                                 border-radius: 8px; 
+                                 overflow-x: auto;">${formattedJSON}
+                            </pre>
                         `;
                         document.body.appendChild(newDiv);
                     })
@@ -206,12 +187,9 @@ def home():
                         console.error('Error:', error);
                         const errorDiv = document.createElement('div');
                         errorDiv.className = 'container';
-                        errorDiv.innerHTML = `
-                            <p style="color: red;">
-                                Error fetching results: ${error.message || error}</p>`;
+                        errorDiv.innerHTML = `<p style="color: red;">Error fetching results: ${error.message || error}</p>`;
                         document.body.appendChild(errorDiv);
                     });
-
                 }
                 </script>
         </head>
@@ -225,15 +203,11 @@ def home():
                 <p>{{ ct3|safe }}</p>
                 <p>{{ ct4|safe }}</p>
             </div>
-            <form class="container" method="POST" 
-                    action="/upload" enctype="multipart/form-data">
-                <div class="div-header">Upload FASTA File:</div>
-                <input type="file" name="fastaFile" accept=".fasta,.fa" required
-                class="input-form">
-                <button type="submit">Upload</button>
-            </form>
-            <div class="container2">
-                <form action="/run" method="POST" class="input-form">
+            <div class="container">
+                <form action="/run" method="POST" enctype="multipart/form-data" class="input-form">
+                    <div class="div-header">Upload FASTA File:</div>
+                    <input type="file" name="fastaFile" accept=".fasta,.fa" required
+                    class="input-form">
                     <div class="div-header">Experiment Parameters:</div>
                     <div class="form-group">
                         <label for="enzymeName">Enzyme Name:</label>
@@ -269,7 +243,8 @@ def home():
     borderRad=5,
 
 
-    title=inTitle,
+    title="Specificity Network Identification via Positional Entropy based Refinement "
+          "(SNIPER)",
 
     header="Modeling Enzyme Specificity",
 
