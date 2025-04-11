@@ -17,16 +17,30 @@ def upload():
 
 
 @app.route('/run', methods=['POST'])
-def runEvaluation():
-    data = request.get_json()
-    enzyme = data['enzymeName']
-    threshold = float(data['threshold'])
-    topN = int(data['topN'])
+def run():
+    try:
+        # Get data from the request
+        data = request.get_json()
+        enzymeName = data.get('enzymeName')
+        threshold = data.get('minS')
+        NSubs = data.get('N')
 
-    # Do something...
-    result = f"Processed {enzyme} with threshold {threshold} and top {topN}."
+        # Simulate some processing (replace this with your actual logic)
+        result = {
+            "message": "Processed successfully",
+            "enzyme": enzymeName,
+            "minS": threshold,
+            "NSubs": NSubs
+        }
+        for key, value in result.items():
+            print(key, value)
 
-    return result  # just return plain text or use jsonify(result=result)
+        # Return the result as a JSON response
+        return jsonify(result)
+
+    except Exception as e:
+        # Return error message as JSON
+        return jsonify({"error": f"Error: {str(e)}"}), 400
 
 
 
@@ -173,22 +187,18 @@ def home():
                     })
                     .then(response => response.json())
                     .then(data => {
+                        console.log("Response Data:", data);  // Log the data to ensure it's correct
+                    
                         const newDiv = document.createElement('div');
                         newDiv.className = 'container';
-                        
                         const formattedJSON = JSON.stringify(data, null, 2); // pretty JSON
-                        
+                    
                         newDiv.innerHTML = `
                             <div class="div-header">Results:</div>
                             <p><strong>Enzyme:</strong> ${enzymeName}</p>
                             <p><strong>Threshold:</strong> ${minS}</p>
                             <p><strong>Top N:</strong> ${N}</p>
-                            <pre style="text-align: left; 
-                                 background-color: #1a1a1a; 
-                                 padding: 10px; 
-                                 border-radius: 8px; 
-                                 overflow-x: auto;">${formattedJSON}
-                            </pre>
+                            <pre style="text-align: left; background-color: #1a1a1a; padding: 10px; border-radius: 8px; overflow-x: auto;">${formattedJSON}</pre>
                         `;
                         document.body.appendChild(newDiv);
                     })
@@ -196,10 +206,12 @@ def home():
                         console.error('Error:', error);
                         const errorDiv = document.createElement('div');
                         errorDiv.className = 'container';
-                        errorDiv.innerHTML = `<p style="color: red;">
-                                                 Error fetching results.</p>`;
+                        errorDiv.innerHTML = `
+                            <p style="color: red;">
+                                Error fetching results: ${error.message || error}</p>`;
                         document.body.appendChild(errorDiv);
                     });
+
                 }
                 </script>
         </head>
