@@ -80,7 +80,6 @@ def plotEntropy(prob, AA, enzymeName):
 
     # Set yticks
     yMax = int(np.ceil(entropyMax))
-    print(f'Y Max: {yMax}')
     yTicks = range(0, yMax+1)
     yTickLabels = [f'{tick:.0f}' if tick != 0 else f'{int(tick)}' for tick in yTicks]
     ax.set_yticks(yTicks)

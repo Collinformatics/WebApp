@@ -178,12 +178,34 @@ def home():
                     margin: {{ spacer }}px auto;
                     margin-bottom: {{ marginB }}px;
                 }
+                .container-params {
+                    background-color: {{ grey }};
+                    font-size: 20px;
+                    text-align: center;
+                    border-radius: {{ borderRad }}px;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    line-height: 0.01;
+                    padding: 0px 0px 0px 0px;
+                    margin: 1px auto;
+                }
+                .container-fig {
+                    background-color: {{ grey }};
+                    font-size: 20px;
+                    text-align: center;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    padding: 0px 0px 0px 0px;
+                    margin: 10px auto;
+                }
                 .div-header {
                     color: #23FF55;
                     font-size: 20px;
                     font-weight: normal;
                     padding-top: 0px;
-                    padding-bottom: 15px;
+                    padding-bottom: 5px;
                 }
                 input[type="file"] {
                     background-color: {{ black }};
@@ -272,32 +294,19 @@ def home():
                 .then(data => {
                     const newDiv = document.createElement('div');
                     newDiv.className = 'container';
-        
-                    let headerContent = '';
-                    if (data.fileReceived) {
-                        headerContent = `
-                            <p><strong>Enzyme:</strong> ${enzymeName}</p>
-                            <p><strong>Min:</strong> ${minS}</p>
-                            <p><strong>Top N:</strong> ${N}</p>
-                        `;
-                    } else {
-                        headerContent = `<p>Use default substrates.</p>`;
-                    }
-        
+                    
                     newDiv.innerHTML = `
                         <div class="div-header">Results:</div>
-                        ${headerContent}
+                        <div class=container-params> 
+                            <p><strong>Enzyme:</strong> ${enzymeName}</p>
+                            <p><strong>Min Entropy:</strong> ${minS}</p>
+                            <p><strong>Number of Substrates:</strong> ${N}</p>
+                        </div>
+                        <div class=container-fig> 
+                            <p><img src="data:image/png;base64,${data.figEntropy}" 
+                                alt="Entropy Plot" style="max-width: 100%;" /></p>
+                        </div>
                     `;
-                    
-                    // Check if figEntropy is available and add it as an image
-                    if (data.figEntropy) {
-                        const imgElement = document.createElement('img');
-                        imgElement.src = 'data:image/png;base64,' + data.figEntropy;
-                        imgElement.alt = 'Entropy Plot';
-                        imgElement.style.maxWidth = '100%';  // Optional: control image size
-                        newDiv.appendChild(imgElement);
-                    }
-            
                     document.body.appendChild(newDiv);
                 })
                 .catch(error => {
