@@ -1,10 +1,15 @@
 import base64
 import io
+import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap, Normalize
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy as np
 import pandas as pd
+
+
+# Set matplotlib backend as non-interactive
+matplotlib.use('Agg')
 
 
 def calcEntropy(probAA, AA):
@@ -23,13 +28,13 @@ def calcEntropy(probAA, AA):
 
     print(f'Positional Entropy:\n{entropy}\n\nMax Entropy: '
           f'{entropyMax.round(4)}\n')
-    
+
     return entropy, entropyMax
 
 
 def plotEntropy(prob, AA, enzymeName):
     entropy, entropyMax = calcEntropy(prob, AA)
-    
+
     # Figure parameters
     titleSize = 18
     labelSizeTitle = 18
@@ -52,19 +57,15 @@ def plotEntropy(prob, AA, enzymeName):
 
     # Map entropy values to colors using the colormap
     normalize = Normalize(vmin=0, vmax=entropyMax)  # Normalize the entropy values
-    cMap = [colorBar(normalize(value)) for value in entropy['ΔEntropy'].astype(float)]
+    cMap = [colorBar(normalize(value)) for value in entropy['ΔS'].astype(float)]
 
     # Plotting the entropy values as a bar graph
-    fig, ax = plt.subplots(figsize=(9.5, 5))
-    plt.bar(entropy.index, entropy['ΔEntropy'], color=cMap,
+    fig, ax = plt.subplots(figsize=(12, 7))
+    plt.bar(entropy.index, entropy['ΔS'], color=cMap,
             edgecolor='black', linewidth=lineThickness, width=0.8)
     plt.xlabel('Substrate Position', fontsize=labelSizeAxis)
     plt.ylabel('Positional Entropy (ΔS)', fontsize=labelSizeAxis)
     plt.title(f'{enzymeName}', fontsize=titleSize, fontweight='bold')
-
-    # Set borders
-    plt.subplots_adjust(top=0.923, bottom=0.124, left=0.096, right=0.943)
-    # plt.subplots_adjust(top=0.93, bottom=0.11, left=0.096, right=0.943)
 
     # Set tick parameters
     ax.tick_params(axis='both', which='major', length=tickLength,
@@ -78,9 +79,9 @@ def plotEntropy(prob, AA, enzymeName):
         tick.tick1line.set_markeredgewidth(lineThickness)  # Set tick width
 
     # Set yticks
-    yMax = np.ceil(entropyMax)
+    yMax = int(np.ceil(entropyMax))
     print(f'Y Max: {yMax}')
-    yTicks = range(0, yMax)
+    yTicks = range(0, yMax+1)
     yTickLabels = [f'{tick:.0f}' if tick != 0 else f'{int(tick)}' for tick in yTicks]
     ax.set_yticks(yTicks)
     ax.set_yticklabels(yTickLabels)

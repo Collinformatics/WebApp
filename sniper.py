@@ -332,7 +332,7 @@ def home():
                     <div class="form-group">
                         <label for="enzymeName">Enzyme Name:</label>
                         <input type="text" id="enzymeName" name="enzymeName" required
-                            value=name>
+                            value=Default>
                     </div>
                     
                     <div class="form-group">
