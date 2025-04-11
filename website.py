@@ -1,10 +1,9 @@
-from flask import Flask, render_template_string
+from flask import Flask, jsonify, render_template_string, request
 
 
 inTitle = ('Specificity Network Identification via '
            'Positional Entropy based Refinement (SNIPER)')
 
-# width: 420px;
 
 app = Flask(__name__)
 
@@ -14,6 +13,21 @@ def upload():
     fastaFile = request.files['fastaFile']
     # process the uploaded file...
     return f"Uploaded: {fastaFile.filename}"
+
+
+
+@app.route('/run', methods=['POST'])
+def runEvaluation():
+    data = request.get_json()
+    enzyme = data['enzymeName']
+    threshold = float(data['threshold'])
+    topN = int(data['topN'])
+
+    # Do something...
+    result = f"Processed {enzyme} with threshold {threshold} and top {topN}."
+
+    return result  # just return plain text or use jsonify(result=result)
+
 
 
 @app.route('/')
@@ -45,18 +59,16 @@ def home():
                     padding-top: 5px;
                     padding-bottom: 0px;
                 }
-                .description-container {
+                .container-description {
                     background-color: {{ grey }};
                     color: {{ white }};
                     font-size: 20px;
                     text-align: center;
                     border-radius: {{ borderRad }}px;
-                    line-height: 1.2;
+                    line-height: 1.4;
                     margin: 20px auto;
-                    padding: 15px 20px;
+                    padding: 20px;
                 }
-
-
                 .container {
                     background-color: {{ grey }};
                     font-size: 20px;
@@ -65,24 +77,22 @@ def home():
                     display: flex;
                     flex-direction: column;
                     align-items: center;
-                    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+                    padding: {{ padTB }}px {{ padSide }}px {{ padTB }}px {{ padSide }}px;
                     margin: {{ spacer }}px auto;
                     margin-bottom: {{ marginB }}px;
-                    padding: {{ 30 }}px 50px 30px 50px;
                 }
-
-                .div-container {
+                .container2 {
                     background-color: {{ grey }};
-                    color: {{ white }};
                     font-size: 20px;
                     text-align: center;
                     border-radius: {{ borderRad }}px;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    padding: {{ padTB }}px {{ padSide }}px {{ marginB }}px {{ padSide }}px;
                     margin: {{ spacer }}px auto;
-                    margin-bottom: {{ marginB }}px;
-                    padding: {{ 30 }}px 50px 30px 50px;
-                } /* width: 420px; */
-
-
+                      margin-bottom: {{ marginB }}px;
+                }
                 .div-header {
                     color: #23FF55;
                     font-size: 20px;
@@ -99,7 +109,8 @@ def home():
                     border-radius: {{ borderRad }}px;
                     width: 100%;
                     max-width: 350px;
-                    padding: 8px;
+                    padding: {{ padInput }}px;
+                    
                 }
                 button {
                     background-color: {{ green }};
@@ -109,7 +120,10 @@ def home():
                     border: none;
                     border-radius: {{ borderRad }}px;
                     padding: 8px 20px;
+                    margin-top: {{ marginButton }}px;
+                    margin-bottom: {{ marginButton }}px;
                 }
+
                 button:hover {
                     background-color: {{ greenLight }};
                 }
@@ -119,12 +133,10 @@ def home():
                     display: flex;
                     flex-direction: column;
                     font-size: {{ fontSize }}px;
-                    margin-bottom: 12px;
                 }
                 .form-group {
                     width: 100%;
                     max-width: 350px;
-                    margin-bottom: 12px;
                 }
                 .form-group label {
                     display: block;
@@ -138,15 +150,63 @@ def home():
                     border: 2px solid {{ greyDark }};
                     text-align: center;
                     width: 100%;
+                    padding: {{ padInput }}px;
                     margin-bottom: {{ spacer }}px;
-                    padding: 8px;
                 }
             </style>
+            <script>
+                function evaluateForm() {
+                    const enzymeName = document.getElementById('enzymeName').value;
+                    const minS = document.getElementById('minS').value;
+                    const N = document.getElementById('N').value;
+                
+                    fetch('/run', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            enzymeName: enzymeName,
+                            threshold: minS,
+                            topN: N
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        const newDiv = document.createElement('div');
+                        newDiv.className = 'container';
+                        
+                        const formattedJSON = JSON.stringify(data, null, 2); // pretty JSON
+                        
+                        newDiv.innerHTML = `
+                            <div class="div-header">Results:</div>
+                            <p><strong>Enzyme:</strong> ${enzymeName}</p>
+                            <p><strong>Threshold:</strong> ${minS}</p>
+                            <p><strong>Top N:</strong> ${N}</p>
+                            <pre style="text-align: left; 
+                                 background-color: #1a1a1a; 
+                                 padding: 10px; 
+                                 border-radius: 8px; 
+                                 overflow-x: auto;">${formattedJSON}
+                            </pre>
+                        `;
+                        document.body.appendChild(newDiv);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'container';
+                        errorDiv.innerHTML = `<p style="color: red;">
+                                                 Error fetching results.</p>`;
+                        document.body.appendChild(errorDiv);
+                    });
+                }
+                </script>
         </head>
         <body>
             <h1>{{ title|safe }}</h1>
             <h2>{{ header|safe }}</h2>
-            <div class="description-container">
+            <div class="container-description">
                 <p>{{ ct1|safe }}</p>
                 <p>{{ ct2|safe }}</p>
                 <p>{{ equation|safe }}</p>
@@ -156,10 +216,11 @@ def home():
             <form class="container" method="POST" 
                     action="/upload" enctype="multipart/form-data">
                 <div class="div-header">Upload FASTA File:</div>
-                <input type="file" name="fastaFile" accept=".fasta,.fa" required>
+                <input type="file" name="fastaFile" accept=".fasta,.fa" required
+                class="input-form">
                 <button type="submit">Upload</button>
             </form>
-            <div class="container">
+            <div class="container2">
                 <form action="/run" method="POST" class="input-form">
                     <div class="div-header">Experiment Parameters:</div>
                     <div class="form-group">
@@ -168,17 +229,18 @@ def home():
                     </div>
 
                     <div class="form-group">
-                        <label for="threshold">Entropy Threshold:</label>
-                        <input type="number" id="threshold" name="threshold" 
+                        <label for="minS">Entropy Threshold:</label>
+                        <input type="number" id="minS" name="minS" 
                         step="0.1" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="topN">Select Number of Substrates:</label>
-                        <input type="number" id="topN" name="topN" required>
+                        <label for="N">Select Number of Substrates:</label>
+                        <input type="number" id="N" name="N" required>
                     </div>
             
-                    <button type="submit">Evaluate</button>
+                    <button type="button" onclick="evaluateForm()">Evaluate</button>
+
                 </form>
 </div>
         </body>
@@ -189,8 +251,8 @@ def home():
     green='#23FF55', greenLight='#1DE64A',
 
     spacer=20, spacerMini=5,
-    padSide=20, padTB=20,
-    marginB=12,
+    padSide=50, padTB=30, padInput=8,
+    marginB=12, marginButton=12,
     fontSize=18,
     borderRad=5,
 
@@ -202,7 +264,7 @@ def home():
     ct1="This program will take substrates for a given enzyme and identify the "
         "Motif, of the recognition sequence within the larger protein sequence. "
         "The Motif is identified by the positions in the substrate that have "
-        "Entropy scores (∆S) that exceed a threshold value.",
+        "Entropy scores (∆S) that exceed a minS value.",
 
     ct2="∆S is evaluated at each position in the substrate sequence and is found by "
         "the difference between the Maximum Entropy (S<sub>Max</sub>) and the "
