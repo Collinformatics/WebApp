@@ -1,38 +1,119 @@
 from flask import Flask, jsonify, render_template_string, request
-
+import pandas as pd
+import sys
 
 
 app = Flask(__name__)
 
+AA = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I',
+              'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V']
+
+def subsDefault():
+    subs = {'VVLQAGCK': 22076,
+            'LILQSVGH': 21783,
+            'VALQSGCK': 20331,
+            'LNLQGGCK': 19201,
+            'IGLQAGCK': 16310,
+            'VGLQAGCK': 15449,
+            'LFLQAGCK': 12375,
+            'VVLQCGCK': 10330,
+            'FVLQAAGE': 10330,
+            'VVMQCACK': 2576,
+            }
+    return subs
+
+
+def countSubstrates(subs, defaultSubs):
+    subLen = len(next(iter(subs)))
+    if defaultSubs:
+        # Count: Substrates
+        subsCounts = {}
+        for sub in subs:
+            if len(sub) == subLen:
+                keepSub = True
+                for aa in sub:
+                    if aa not in AA:
+                        keepSub = False
+                        break
+                if keepSub:
+                    if sub in subsCounts.keys():
+                        subsCounts[sub] += 1
+                    else:
+                        subsCounts[sub] = 1
+    else:
+        subsCounts = subs
+
+    # Evaluate: AA distributions
+    probAA = evalAA(subs, subLen)
+
+    # Create dataset
+    dataset = {}
+    dataset['substrates'] = subsCounts
+    dataset['probability'] = probAA
+
+    return dataset
+
+
+def evalAA(subs, subLen):
+    # Define: Substrate positions
+    pos = [f'R{index+1}' for index in range(subLen)]
+
+    # Count AAs
+    totalSubs = 0
+    countedAA = pd.DataFrame(0, index=AA, columns=pos)
+    for sub, count in subs.items():
+        totalSubs += count
+        for index, aa in enumerate(sub):
+            countedAA.loc[aa, pos[index]] += count
+
+    # Evaluate: AA probability
+    probAA = countedAA / totalSubs
+
+    # Evaluate: Entropy
+    
+
+    return probAA
+
 
 @app.route('/run', methods=['POST'])
 def run():
+    # Get file from the form
     try:
-        # Get file from the form
-        try:
-            substrates = request.files['fastaFile']
-        except Exception as e:
-            substrates = False
+        substrates = request.files['textFile']
+        loadFile = False
+        if substrates:
+            loadFile = True
+            print('Subs: Load')
 
-        # Get other data from the form
-        enzymeName = request.form.get('enzymeName')
-        threshold = request.form.get('minS')
-        NSubs = request.form.get('N')
+            # Read the contents of the file
+            substrate = substrates.read().decode('utf-8')
 
-        result = {
-            "fileReceived": substrates.filename if substrates else False,
-            "fastq": substrates,
-            "enzyme": enzymeName,
-            "minS": threshold,
-            "NSubs": NSubs,
-        }
-
-        print('Upload data')
-        return jsonify(result)
+            # Split the content by lines to get each substrate sequence
+            substrates = substrate.splitlines()
+        else:
+            substrates = subsDefault()
+            print('Subs: Default')
 
     except Exception as e:
-        return jsonify({"error": f"Error: {str(e)}"}), 400
+        return jsonify({"error": f"Error A: {str(e)}"}), 400
 
+    dataset = countSubstrates(substrates, loadFile)
+
+    # Get other data from the form
+    enzymeName = request.form.get('enzymeName')
+    threshold = request.form.get('minS')
+    NSubs = request.form.get('N')
+
+    result = {
+        "fileReceived": substrates.filename if loadFile else False,
+        "substrates": substrates,
+        "enzyme": enzymeName,
+        "minS": threshold,
+        "NSubs": NSubs,
+    }
+
+    print('Upload data')
+    return jsonify(result)
 
 
 @app.route('/')
@@ -41,6 +122,72 @@ def home():
     <html>
         <head>
             <title>SNIPER</title>
+            <script>
+                function evaluateForm() {
+                    const enzymeName = document.getElementById('enzymeName').value;
+                    const minS = document.getElementById('minS').value;
+                    const N = document.getElementById('N').value;
+                    const substrates = document.getElementById('substrates').value;
+                    document.querySelector('input[name="textFile"]').files[0];
+                
+                    const formData = new FormData();
+                    formData.append('enzymeName', enzymeName);
+                    formData.append('minS', minS);
+                    formData.append('N', N);
+                    const textFile = document.querySelector('input[name="textFile"]').files[0];
+                    formData.append('textFile', textFile);
+                
+                    fetch('/run', {
+                        method: 'POST',
+                        body: formData  // Don't set Content-Type manually
+                                        // browser will handle it
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        const newDiv = document.createElement('div');
+                        newDiv.className = 'container';
+                        const formattedJSON = JSON.stringify(data, null, 2);
+                    
+                        let headerContent = '';
+                        if (data.fileReceived) {
+                            headerContent = `
+                                <p><strong>Enzyme:</strong> ${enzymeName}</p>
+                                <p><strong>Min:</strong> ${minS}</p>
+                                <p><strong>Top N:</strong> ${N}</p>
+                            `;
+                    
+                            // If substrates are counted in the response
+                            contentToShow = data.substrates || {};
+                        } else {
+                            headerContent = `
+                                <p>No file received.</p>
+                            substrates = subsDefault();
+                            `;
+                        }
+                        const formattedJSON = JSON.stringify(contentToShow, null, 2);
+                    
+                        newDiv.innerHTML = `
+                            <div class="div-header">Results:</div>
+                            ${headerContent}
+                            <pre style="text-align: left; 
+                                 background-color: {{ black }}; 
+                                 padding: 10px; 
+                                 border-radius: {{ borderRad }}}px; 
+                            </pre>
+                        `;
+                        document.body.appendChild(newDiv);
+                    })
+
+                    .catch(error => {
+                        console.error('Error:', error);
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'container';
+                        errorDiv.innerHTML = `<p style="color: red;">
+                            Error fetching results: ${error.message || error}</p>`;
+                        document.body.appendChild(errorDiv);
+                    });
+                }
+            </script>
             <style>
                 body {
                     background-color: {{ black }};
@@ -82,7 +229,8 @@ def home():
                     display: flex;
                     flex-direction: column;
                     align-items: center;
-                    padding: {{ padTB }}px {{ padSide }}px {{ marginB }}px {{ padSide }}px;
+                    padding: {{ padTB }}px {{ padSide }}px 
+                             {{ marginB }}px {{ padSide }}px;
                     margin: {{ spacer }}px auto;
                     margin-bottom: {{ marginB }}px;
                 }
@@ -115,7 +263,6 @@ def home():
                     margin-top: {{ marginButton }}px;
                     margin-bottom: {{ marginButton }}px;
                 }
-
                 button:hover {
                     background-color: {{ greenLight }};
                 }
@@ -146,52 +293,6 @@ def home():
                     margin-bottom: {{ spacer }}px;
                 }
             </style>
-            <script>
-                function evaluateForm() {
-                    const enzymeName = document.getElementById('enzymeName').value;
-                    const minS = document.getElementById('minS').value;
-                    const N = document.getElementById('N').value;
-                    const fastaFile = 
-                    document.querySelector('input[name="fastaFile"]').files[0];
-                
-                    const formData = new FormData();
-                    formData.append('enzymeName', enzymeName);
-                    formData.append('minS', minS);
-                    formData.append('N', N);
-                    formData.append('fastaFile', fastaFile);
-                
-                    fetch('/run', {
-                        method: 'POST',
-                        body: formData  // Don't set Content-Type manually, browser will handle it
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        const newDiv = document.createElement('div');
-                        newDiv.className = 'container';
-                        const formattedJSON = JSON.stringify(data, null, 2);
-                        newDiv.innerHTML = `
-                            <div class="div-header">Results:</div>
-                            <p><strong>Enzyme:</strong> ${enzymeName}</p>
-                            <p><strong>Threshold:</strong> ${minS}</p>
-                            <p><strong>Top N:</strong> ${N}</p>
-                            <pre style="text-align: left; 
-                                 background-color: #1a1a1a; 
-                                 padding: 10px; 
-                                 border-radius: 8px; 
-                                 overflow-x: auto;">${formattedJSON}
-                            </pre>
-                        `;
-                        document.body.appendChild(newDiv);
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        const errorDiv = document.createElement('div');
-                        errorDiv.className = 'container';
-                        errorDiv.innerHTML = `<p style="color: red;">Error fetching results: ${error.message || error}</p>`;
-                        document.body.appendChild(errorDiv);
-                    });
-                }
-                </script>
         </head>
         <body>
             <h1>{{ title|safe }}</h1>
@@ -204,31 +305,34 @@ def home():
                 <p>{{ ct4|safe }}</p>
             </div>
             <div class="container">
-                <form action="/run" method="POST" enctype="multipart/form-data" class="input-form">
-                    <div class="div-header">Upload FASTA File:</div>
-                    <input type="file" name="fastaFile" accept=".fasta,.fa" required
-                    class="input-form">
+                <form action="/run" method="POST" 
+                      enctype="multipart/form-data" class="input-form">
+                    <div class="div-header">Upload Text File:</div>
+                    <input type="file" name="textFile" accept=".txt"
+                    class="input-form"> <!-- removed 'required' -->
+                    
                     <div class="div-header">Experiment Parameters:</div>
+                    
                     <div class="form-group">
                         <label for="enzymeName">Enzyme Name:</label>
-                        <input type="text" id="enzymeName" name="enzymeName" required>
+                        <input type="text" id="enzymeName" name="enzymeName" required
+                            value=name>
                     </div>
-
+                    
                     <div class="form-group">
                         <label for="minS">Entropy Threshold:</label>
                         <input type="number" id="minS" name="minS" 
-                        step="0.1" required>
+                        step="0.1" value="0.6" required>
                     </div>
-
+                    
                     <div class="form-group">
-                        <label for="N">Select Number of Substrates:</label>
-                        <input type="number" id="N" name="N" required>
+                        <label for="N">Number of Substrates:</label>
+                        <input type="number" id="N" name="N" value="30" required>
                     </div>
-            
-                    <button type="button" onclick="evaluateForm()">Evaluate</button>
-
+                    
+                    <button type="submit">Evaluate</button>
                 </form>
-</div>
+            </div>
         </body>
     </html>
     ''',
