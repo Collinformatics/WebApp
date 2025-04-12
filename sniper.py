@@ -351,7 +351,7 @@ def home():
                     
                     <div class="form-group">
                         <label for="N">Number of Substrates:</label>
-                        <input type="number" id="N" name="N" value="30" required>
+                        <input type="number" id="N" name="N" value="25" required>
                     </div>
                     
                     <button type="button" onclick="evaluateForm()">Submit</button>

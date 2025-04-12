@@ -29,6 +29,25 @@ AA = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I',
 matplotlib.use('Agg')
 
 
+
+def createCustomColorMap(colorType):
+    if colorType == 'Probability':
+        colors = ['#FFFFFF', '#ABFF9B', '#39FF14', '#2E9418', '#2E9418', '#005000']
+    elif colorType == 'Word Cloud':
+        colors = ['#9BFF9B', '#39FF14', '#2FB513', '#006000', 'black']
+    else:
+        colors = ['#008631', '#39E75F', '#CC5500', '#F79620', 'black']
+
+    # Create colormap
+    if len(colors) == 1:
+        colorList = [(0, colors[0]), (1, colors[0])]
+    else:
+        colorList = [(i / (len(colors) - 1), color) for i, color in enumerate(colors)]
+
+    return LinearSegmentedColormap.from_list('custom_colormap', colorList)
+
+
+
 def processData(substrates, entropyMin, NSelect, enzymeName, defaultSubs):
     if defaultSubs:
         subLen = len(substrates[0])
@@ -92,8 +111,8 @@ def processData(substrates, entropyMin, NSelect, enzymeName, defaultSubs):
 
 def subsDefault():
     substrates = {
-        'VVLQAGTK': 19076,
-        'VILQSVGA': 18383,
+        'VVKQRGTK': 19076,
+        'VIKQRVGA': 18383,
         'LALQSACW': 17331,
         'LNLQGILD': 16201,
         'IYLQALMP': 16010,
@@ -124,24 +143,6 @@ def subsDefault():
         }
 
     return substrates
-
-
-
-def createCustomColorMap(colorType):
-    if colorType == 'Probability':
-        colors = ['#FFFFFF', '#ABFF9B', '#39FF14', '#2E9418', '#2E9418', '#005000']
-    elif colorType == 'Word Cloud':
-        colors = ['#A7A7A7', '#39FF14', '#2E9418', 'black']
-    else:
-        colors = ['#008631', '#39E75F','#CC5500', '#F79620', 'black']
-
-    # Create colormap
-    if len(colors) == 1:
-        colorList = [(0, colors[0]), (1, colors[0])]
-    else:
-        colorList = [(i / (len(colors) - 1), color) for i, color in enumerate(colors)]
-        
-    return LinearSegmentedColormap.from_list('custom_colormap', colorList)
 
 
 
@@ -294,8 +295,8 @@ def plotEntropy(probAA, AA, enzymeName):
 
 def plotWeblogo(probAA, entropy, entropyMax, N, enzymeName):
     # AA Types: Aliphatic, Acidic, Basic, Hydroxyl, Amide, Aromatic, Sulfur
-    letterColors = ['darkgreen','firebrick','deepskyblue','pink','indigo','black','gold']
-    
+    letterColors = ['#00D500','#CE0000','#08FFFF','#FF0088','#662695','#151515','#FFDD00']
+
     # Set local parameters
     bigLettersOnTop = False
     if bigLettersOnTop:
@@ -562,3 +563,8 @@ def plotWordCloud(binnedSubs, N, enzymeName):
     figWords = base64.b64encode(imgStream.read()).decode('utf-8')
 
     return figWords
+
+
+
+def plotSuffixTree():
+    x = None
