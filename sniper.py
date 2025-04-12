@@ -134,7 +134,7 @@ def home():
                 p {
                     font-size: {{ fontSize }}px;
                     text-align: center;
-                    padding-top: 5px;
+                    padding-top: 0px;
                     padding-bottom: 0px;
                 }
                 .container-description {
@@ -170,7 +170,16 @@ def home():
                     align-items: center;
                     line-height: 0.01;
                     padding: 0px 0px 0px 0px;
-                    margin: 1px auto;
+                    margin: 5px auto;
+                }
+                .container-figDescription {
+                    font-size: 16px;
+                    text-align: center;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    padding: 5px 0px 0px 0px;
+                    margin: 0px auto;
                 }
                 .container-fig {
                     background-color: {{ grey }};
@@ -179,8 +188,8 @@ def home():
                     display: flex;
                     flex-direction: column;
                     align-items: center;
-                    padding: 0px 0px 0px 0px;
-                    margin: 10px auto;
+                    padding: 50px 0px 0px 0px;
+                    margin: 5px auto;
                 }
                 .div-header {
                     color: #23FF55;
@@ -284,15 +293,31 @@ def home():
                             <p><strong>Min Entropy:</strong> ${entropyMin}</p>
                             <p><strong>Selecting Substrates:</strong> ${N}</p>
                         </div>
-                        <div class=container-fig> 
+                        <div class=container-fig>
+                            <div class="div-header">
+                                Amino Acid Probability Distribution:
+                            </div>
                             <p><img src="data:image/png;base64,${data.figProb}" 
                                 alt="Probability Plot" style="max-width: 100%;" /></p>
                         </div>
-                        <div class=container-fig> 
+                        <div class=container-fig>
+                            <div class="div-header">
+                                Positional Entropy (ΔS):
+                            </div>
+                             <div class=figDescription>
+                                <p>{{ equation|safe }}</p>
+                             </div>
                             <p><img src="data:image/png;base64,${data.figEntropy}" 
                                 alt="Entropy Plot" style="max-width: 100%;" /></p>
                         </div>
+                            <div class="div-header">
+                                pLogo:
+                            </div>
+                            <div class=figDescription>
+                                <p>ΔS × probability<sub>AA</sub></p>
+                             </div>
                         <div class=container-fig> 
+                        
                             <p><img src="data:image/png;base64,${data.figLogo}" 
                                 alt="pLogfo" style="max-width: 100%;" /></p>
                         </div>
@@ -311,8 +336,8 @@ def home():
         </script>
         <body>
             <h1>{{ title|safe }}</h1>
-            <h2>{{ header|safe }}</h2>
             <div class="container-description">
+                <p>{{ header|safe }}</p>
                 <p>{{ pg1|safe }}</p>
                 <p>{{ pg2|safe }}</p>
                 <p>{{ equation|safe }}</p>
@@ -357,13 +382,13 @@ def home():
     spacer=20, spacerMini=5,
     padSide=50, padTB=30, padInput=8,
     marginB=12, marginButton=12,
-    fontSize=18,
+    fontSize=16,
     borderRad=5,
 
 
     title="Specificity Network Identification via Positional Entropy based Refinement "
           "(SNIPER)",
-    header="Modeling Enzyme Specificity",
+    header="Description:",
     pg1="This program will take substrates for a given enzyme and identify the "
         "Motif, of the recognition sequence within the larger protein sequence. "
         "The Motif is identified by the positions in the substrate that have "

@@ -8,7 +8,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy as np
 import pandas as pd
 import seaborn as sns
-
+from setuptools.command.rotate import rotate
 
 # Figure parameters
 labelSizeTitle = 18
@@ -45,12 +45,12 @@ def subsDefault():
             'GELQSWHF': 9005,
             'CDMQCMWG': 7330,
             'VWMQCSII': 7013,
-            'IILQSCSM': 6276,
+            'IVMQCCSM': 6276,
 
             'VLIQCCPR': 1991,
-            'VVAQCGSM': 1754,
+            'VVMQSGSM': 1754,
             'VVFQCHNR': 1576,
-            'PRQQVKLQ': 1234,
+            'PRFQCKLR': 1234,
             'VEFQCCLQ': 900
             }
 
@@ -60,7 +60,7 @@ def subsDefault():
 
 def createCustomColorMap(colorType):
     if colorType == 'Probability':
-        colors = ['#FFFFFF', '#39FF14', '#2E9418']
+        colors = ['#FFFFFF', '#ABFF9B', '#39FF14', '#2E9418', '#2E9418', '#005000']
     elif colorType == 'Word Cloud':
         colors = ['#A7A7A7', '#39FF14', '#2E9418', 'black']
     else:
@@ -170,7 +170,7 @@ def plotEntropy(probAA, AA, enzymeName):
     plt.bar(entropy.index, entropy['ΔS'], color=cMap,
             edgecolor='black', linewidth=lineThickness, width=0.8)
     plt.xlabel('Substrate Position', fontsize=labelSizeAxis)
-    plt.ylabel('Positional Entropy (ΔS)', fontsize=labelSizeAxis)
+    plt.ylabel('ΔS', fontsize=labelSizeAxis, rotation=90)
     plt.title(f'{enzymeName}', fontsize=labelSizeTitle, fontweight='bold')
 
     # Set tick parameters
