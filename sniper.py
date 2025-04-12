@@ -105,6 +105,18 @@ def home():
                     margin: {{ spacer }}px auto;
                     margin-bottom: {{ marginB }}px;
                 }
+                .container-input {
+                    background-color: {{ grey }};
+                    font-size: 20px;
+                    text-align: center;
+                    border-radius: {{ borderRad }}px;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    padding: 0px 0px 0px 0px;
+                    margin: {{ spacer }}px auto;
+                    margin-bottom: {{ marginB }}px;
+                }
                 .container-params {
                     background-color: {{ grey }};
                     font-size: 20px;
@@ -331,31 +343,31 @@ def home():
                 <p>{{ pg5|safe }}</p>
             </div>
             <div class="container">
-                <form action="/run" method="POST" 
-                      enctype="multipart/form-data" class="input-form">
+                <div class="container-input">
+                    <form action="/run" method="POST" enctype="multipart/form-data" class="input-form">
                     <div class="div-header">Upload Text File:</div>
-                        <input type="file" name="textFile" accept=".txt"
-                        class="input-form"> <!-- removed 'required' -->
+                    <div class="form-group">
+                        <label for="textFile">Uploaded files must be formatted as .txt</label>
+                        <input type="file" id="textFile" name="textFile" accept=".txt" class="input-form">
+                    </div>
+
                     <div class="div-header">Experiment Parameters:</div>
                     <div class="form-group">
-                        <label for="enzymeName">Enzyme Name:</label>
-                        <input type="text" id="enzymeName" name="enzymeName" required
-                            value=Protease>
+                        <label for="enzymeName">Name Your Enzyme:</label>
+                        <input type="text" id="enzymeName" name="enzymeName" required value=Protease>
                     </div>
                     
                     <div class="form-group">
-                        <label for="entropyMin">Entropy Threshold:</label>
-                        <input type="number" id="entropyMin" name="entropyMin" 
-                        step="0.1" value="0.6" required>
+                        <label for="entropyMin">Minimum Entropy Score:</label>
+                        <input type="number" id="entropyMin" name="entropyMin" step="0.1" value="0.6" required>
                     </div>
                     
                     <div class="form-group">
-                        <label for="N">Number of Substrates:</label>
+                        <label for="N">Select & Bin "N" Substrates:</label>
                         <input type="number" id="N" name="N" value="25" required>
                     </div>
-                    
-                    <button type="button" onclick="evaluateForm()">Submit</button>
-                </form>
+                        <button type="button" onclick="evaluateForm()">Submit</button>
+                    </form>
             </div>
         </body>
     </html>
@@ -383,13 +395,19 @@ def home():
         "Shannon Entropy (S<sub>Shannon</sub>)",
     equation="∆S = S<sub>Max</sub> - S<sub>Shannon</sub> = log<sub>2</sub>(20) - "
             "∑(-prob<sub>AA</sub> * log<sub>2</sub>(prob<sub>AA</sub>))",
-    pg3="Once we have identified the motif, we can select the most common AA sequences "
-        "and use them as input for a Suffix Tree. This will plot the preferred residues "
-        "in descending order of Specificity, as determined by the ∆S values.",
-    pg4="The tree will reveal the Specificity Network of your enzyme. "
-        "In other words, we will be able to identify the AA preferences at a given "
-        "location in the motif when a specific AA is at an other position.",
-    pg5="Uploaded files must be formatted as .txt"
+    pg3="Once we have identified the Motif, we can bin the substrates to select the only"
+        "the recognition sequence. In other words, we remove the parts of the substrate "
+        "that are not important for an Enzyme-Substrate interaction.",
+    pg4="We can count the occurrences of each Motif, and plot this data in a Bar Graph, "
+        "and a Word Cloud. This allows us to display the optimal combinations of amino "
+        "acids that fit into the enzymes active site."
+        "will plot the and use them as input for a Suffix Tree. This will plot the "
+        "preferred residues in descending order of Specificity, as determined by the "
+        "∆S values.",
+    pg5="We can further evaluate the Motif by feeding the data into a Suffix Tree. "
+        "This will reveal the Specificity Network of your enzyme, or the specific "
+        "connections between the preferences for a given amino acid when another is "
+        "present."
 )
 
 

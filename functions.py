@@ -29,7 +29,6 @@ AA = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I',
 matplotlib.use('Agg')
 
 
-
 def createCustomColorMap(colorType):
     if colorType == 'Probability':
         colors = ['#FFFFFF', '#ABFF9B', '#39FF14', '#2E9418', '#2E9418', '#005000']
