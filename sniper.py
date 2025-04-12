@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, render_template_string, request
 import numpy as np
 import pandas as pd
-from figures import plotEntropy
+from figures import plotEntropy, plotWeblogo
 import sys
 
 
@@ -71,17 +71,16 @@ def processData(subs, enzymeName, defaultSubs):
     probAA = countedAA / totalSubs
 
     # Figure: Entropy
-    entropy, figEntropy = plotEntropy(probAA, AA, enzymeName)
+    entropy, entropyMax, figEntropy = plotEntropy(probAA, AA, enzymeName)
+    figLogo = plotWeblogo(probAA, entropy, entropyMax, totalSubs, enzymeName)
 
     # Create dataset
     dataset = {}
-    dataset['substrates'] = subsCounts
-    dataset['probability'] = probAA
-    dataset['entropy'] = entropy
-    dataset['figEntropy'] = figEntropy
+    dataset['N'] = totalSubs
+    dataset['entropy'] = figEntropy
+    dataset['pLogo'] = figLogo
 
     return dataset
-
 
 
 @app.route('/run', methods=['POST'])
@@ -110,17 +109,17 @@ def run():
     # Get other data from the form
     enzymeName = request.form.get('enzymeName')
     threshold = request.form.get('minS')
-    NSubs = request.form.get('N')
+    selectNSubs = request.form.get('N')
 
     # Evaluate: Data
     dataset = processData(substrates, enzymeName, loadFile)
 
     result = {
-        "fileReceived": substrates.filename if loadFile else False,
         "enzyme": enzymeName,
         "minS": threshold,
-        "NSubs": NSubs,
-        "figEntropy": dataset['figEntropy']
+        "selectNSubs": selectNSubs,
+        "figEntropy": dataset['entropy'],
+        "figLogo": dataset['pLogo'],
     }
 
     return jsonify(result)
@@ -300,10 +299,14 @@ def home():
                         <div class=container-params> 
                             <p><strong>Enzyme:</strong> ${enzymeName}</p>
                             <p><strong>Min Entropy:</strong> ${minS}</p>
-                            <p><strong>Number of Substrates:</strong> ${N}</p>
+                            <p><strong>Selecting Substrates:</strong> ${N}</p>
                         </div>
                         <div class=container-fig> 
                             <p><img src="data:image/png;base64,${data.figEntropy}" 
+                                alt="Entropy Plot" style="max-width: 100%;" /></p>
+                        </div>
+                        <div class=container-fig> 
+                            <p><img src="data:image/png;base64,${data.figLogo}" 
                                 alt="Entropy Plot" style="max-width: 100%;" /></p>
                         </div>
                     `;
