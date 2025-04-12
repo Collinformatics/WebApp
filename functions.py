@@ -59,26 +59,26 @@ def processData(substrates, entropyMin, NSelect, enzymeName, defaultSubs):
     pos = [f'R{index + 1}' for index in range(subLen)]
 
     # Count AAs
-    totalSubs = 0
+    N = 0
     countedAA = pd.DataFrame(0, index=AA, columns=pos)
     for sub, count in substrates.items():
-        totalSubs += count
+        N += count
         for index, aa in enumerate(sub):
             countedAA.loc[aa, pos[index]] += count
 
     # Evaluate: AA probability
-    probAA = countedAA / totalSubs
+    probAA = countedAA / N
 
     # Figure: Entropy
-    figProb = plotProbabilities(probAA, totalSubs, enzymeName)
+    figProb = plotProbabilities(probAA, N, enzymeName)
     entropy, entropyMax, figEntropy = plotEntropy(probAA, AA, enzymeName)
-    figLogo = plotWeblogo(probAA, entropy, entropyMax, totalSubs, enzymeName)
+    figLogo = plotWeblogo(probAA, entropy, entropyMax, N, enzymeName)
     NBinSubs, figBarCounts, figBarProb, figWords = binSubstrates(
         substrates, entropy, entropyMin, NSelect, enzymeName)
 
     # Create dataset
     dataset = {}
-    dataset['N'] = totalSubs
+    dataset['N'] = N
     dataset['NBinSubs'] = NBinSubs
     dataset['probability'] = figProb
     dataset['entropy'] = figEntropy
@@ -146,20 +146,20 @@ def createCustomColorMap(colorType):
 
 
 
-def plotProbabilities(probAA, totalSubs, enzymeName):
+def plotProbabilities(probAA, N, enzymeName):
     # Create heatmap
     cMapCustom = createCustomColorMap(colorType='Probability')
 
 
     # Plot the heatmap with numbers centered inside the squares
-    fig, ax = plt.subplots(figsize=figSize)
+    fig, ax = plt.subplots(figsize=figSize, dpi=300)
     heatmap = sns.heatmap(probAA, annot=True, fmt='.3f', cmap=cMapCustom,
                           cbar=True, linewidths=lineThickness-1,
                           linecolor='black', square=False, center=None,
                           annot_kws={'fontweight': 'bold'})
     ax.set_xlabel('Substrate Position', fontsize=labelSizeAxis)
     ax.set_ylabel('Residue', fontsize=labelSizeAxis)
-    ax.set_title(f'\n{enzymeName}\nProbability Distribution',
+    plt.title(f'\n{enzymeName}\nProbability Distribution\nN = {N:,}',
                  fontsize=labelSizeTitle, fontweight='bold')
     plt.subplots_adjust(top=figBorders[0], bottom=figBorders[1],
                         left=figBorders[2]+0.01, right=figBorders[3]+0.085)
@@ -341,10 +341,10 @@ def plotWeblogo(probAA, entropy, entropyMax, N, enzymeName):
         heights.replace([np.inf, -np.inf], 0, inplace=True)
 
     # Plot the sequence motif
-    fig, ax = plt.subplots(figsize=figSize)
+    fig, ax = plt.subplots(figsize=figSize, dpi=300)
     motif = logomaker.Logo(heights.transpose(), ax=ax, color_scheme=colors,
                            width=0.95, stack_order=stackOrder)
-    motif.ax.set_title(f'\n{enzymeName}\nTotal Substrates = {int(N):,}\n',
+    plt.title(f'\n{enzymeName}\nN = {int(N):,}\n',
                        fontsize=labelSizeTitle, fontweight='bold')
 
     # Set tick parameters
@@ -444,10 +444,10 @@ def plotBinnedSubstrates(binnedSubs, N, NSelect, enzymeName):
         yMin = 0
 
         # Plot the data
-        fig, ax = plt.subplots(figsize=figSize)
+        fig, ax = plt.subplots(figsize=figSize, dpi=300)
         bars = plt.bar(xValues, yValues, color=barColor, width=barWidth)
         plt.ylabel(yLabel, fontsize=labelSizeAxis)
-        plt.title(title, fontsize=labelSizeTitle, fontweight='bold')
+        plt.title(f'{title}\nN = {N:,}', fontsize=labelSizeTitle, fontweight='bold')
         plt.axhline(y=0, color='black', linewidth=lineThickness)
         plt.ylim(yMin, yMax)
 
@@ -516,6 +516,7 @@ def plotBinnedSubstrates(binnedSubs, N, NSelect, enzymeName):
     yMaxAdjusted = yMaxProb - adjVal
     if yMaxAdjusted > maxProb:
         yMaxProb = yMaxAdjusted
+    print(yMaxProb)
 
 
     # Make: Figures
@@ -523,13 +524,13 @@ def plotBinnedSubstrates(binnedSubs, N, NSelect, enzymeName):
     figBinProb = plotBarGraph(xProb, yProb, yMaxProb, 'Probability', enzymeName)
 
     # Evaluate: Word cloud
-    figWords = plotWordCloud(binnedSubs)
+    figWords = plotWordCloud(binnedSubs, N, enzymeName)
 
     return NBinSubs, figBinCounts, figBinProb, figWords
 
 
 
-def plotWordCloud(binnedSubs):
+def plotWordCloud(binnedSubs, N, enzymeName):
     cmap = createCustomColorMap(colorType='Word Cloud')
 
     # Create word cloud
@@ -545,9 +546,15 @@ def plotWordCloud(binnedSubs):
 
 
     # Create a figure
-    fig, ax = plt.subplots(figsize=figSize)
+    fig, ax = plt.subplots(figsize=figSize, dpi=300)
+    plt.title(f'\n{enzymeName}\nN = {N:,}\n',
+              fontsize=labelSizeTitle-5, fontweight='bold')
     ax.imshow(wordcloud, interpolation='bilinear')
     ax.axis('off') # Turn off axis
+
+    # Set edge thickness
+    for spine in ax.spines.values():
+        spine.set_linewidth(lineThickness)
 
     # Convert figure to base64
     imgStream = io.BytesIO()
