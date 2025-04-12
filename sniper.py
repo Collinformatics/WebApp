@@ -1,7 +1,8 @@
 from flask import Flask, jsonify, render_template_string, request
 import numpy as np
 import pandas as pd
-from figures import plotEntropy, plotWeblogo
+from functions import (binSubstrates, plotEntropy, plotProbabilities, plotWeblogo,
+                       subsDefault)
 import sys
 
 
@@ -10,33 +11,9 @@ app = Flask(__name__)
 AA = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I',
               'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V']
 
-def subsDefault():
-    subs = {'VVLQAGTK': 17076,
-            'LILQSVGA': 16783,
-            'VALQSACW': 16331,
-            'LNLQGILD': 15201,
-            'IYLQALMP': 15010,
-            'TSLQARKS': 14449,
-            'AFLQAHFT': 13175,
-            'VTLQCTYS': 13330,
-            'VLLQAKQL': 12201,
-            'LVLQANPC': 12010,
-            'IMLQGVIW': 11449,
-            'AGLQASAH': 11175,
-            'MHLQSENE': 10330,
-            'MVLQGDVN': 9201,
-            'YGLQCNEV': 9010,
-            'KCMQAQVQ': 8449,
-            'GELQSWHF': 8175,
-            'CDMQCMWG': 7330,
-            'VWMQCSII': 7013,
-            'VVFQCCNM': 2576,
-            }
-
-    return subs
 
 
-def processData(subs, enzymeName, defaultSubs):
+def processData(subs, entropyMin, enzymeName, defaultSubs):
     subLen = len(next(iter(subs)))
     if defaultSubs:
         # Count: Substrates
@@ -71,14 +48,18 @@ def processData(subs, enzymeName, defaultSubs):
     probAA = countedAA / totalSubs
 
     # Figure: Entropy
+    figProb = plotProbabilities(probAA, totalSubs, enzymeName)
     entropy, entropyMax, figEntropy = plotEntropy(probAA, AA, enzymeName)
     figLogo = plotWeblogo(probAA, entropy, entropyMax, totalSubs, enzymeName)
+    figWords = binSubstrates(subs, entropy, entropyMin)
 
     # Create dataset
     dataset = {}
     dataset['N'] = totalSubs
+    dataset['probability'] = figProb
     dataset['entropy'] = figEntropy
     dataset['pLogo'] = figLogo
+    dataset['words'] = figWords
 
     return dataset
 
@@ -108,18 +89,20 @@ def run():
 
     # Get other data from the form
     enzymeName = request.form.get('enzymeName')
-    threshold = request.form.get('minS')
+    entropyMin = request.form.get('entropyMin')
     selectNSubs = request.form.get('N')
 
     # Evaluate: Data
-    dataset = processData(substrates, enzymeName, loadFile)
+    dataset = processData(substrates, entropyMin, enzymeName, loadFile)
 
     result = {
         "enzyme": enzymeName,
-        "minS": threshold,
+        "entropyMin": entropyMin,
         "selectNSubs": selectNSubs,
+        "figProb": dataset['probability'],
         "figEntropy": dataset['entropy'],
         "figLogo": dataset['pLogo'],
+        "figWords": dataset['words']
     }
 
     return jsonify(result)
@@ -264,19 +247,19 @@ def home():
                 event?.preventDefault(); // Prevent any default form action
         
                 const enzymeName = document.getElementById('enzymeName').value;
-                const minS = document.getElementById('minS').value;
+                const entropyMin = document.getElementById('entropyMin').value;
                 const N = document.getElementById('N').value;
                 const textFileInput = document.querySelector('input[name="textFile"]');
                 const textFile = textFileInput.files[0];
         
-                if (!enzymeName || !minS || !N) {
+                if (!enzymeName || !entropyMin || !N) {
                     alert("Please fill out all required fields.");
                     return;
                 }
         
                 const formData = new FormData();
                 formData.append('enzymeName', enzymeName);
-                formData.append('minS', minS);
+                formData.append('entropyMin', entropyMin);
                 formData.append('N', N);
                 if (textFile) {
                     formData.append('textFile', textFile);
@@ -298,8 +281,12 @@ def home():
                         <div class="div-header">Results:</div>
                         <div class=container-params> 
                             <p><strong>Enzyme:</strong> ${enzymeName}</p>
-                            <p><strong>Min Entropy:</strong> ${minS}</p>
+                            <p><strong>Min Entropy:</strong> ${entropyMin}</p>
                             <p><strong>Selecting Substrates:</strong> ${N}</p>
+                        </div>
+                        <div class=container-fig> 
+                            <p><img src="data:image/png;base64,${data.figProb}" 
+                                alt="Probability Plot" style="max-width: 100%;" /></p>
                         </div>
                         <div class=container-fig> 
                             <p><img src="data:image/png;base64,${data.figEntropy}" 
@@ -307,7 +294,7 @@ def home():
                         </div>
                         <div class=container-fig> 
                             <p><img src="data:image/png;base64,${data.figLogo}" 
-                                alt="Entropy Plot" style="max-width: 100%;" /></p>
+                                alt="pLogfo" style="max-width: 100%;" /></p>
                         </div>
                     `;
                     document.body.appendChild(newDiv);
@@ -326,30 +313,29 @@ def home():
             <h1>{{ title|safe }}</h1>
             <h2>{{ header|safe }}</h2>
             <div class="container-description">
-                <p>{{ ct1|safe }}</p>
-                <p>{{ ct2|safe }}</p>
+                <p>{{ pg1|safe }}</p>
+                <p>{{ pg2|safe }}</p>
                 <p>{{ equation|safe }}</p>
-                <p>{{ ct3|safe }}</p>
-                <p>{{ ct4|safe }}</p>
+                <p>{{ pg3|safe }}</p>
+                <p>{{ pg4|safe }}</p>
+                <p>{{ pg5|safe }}</p>
             </div>
             <div class="container">
                 <form action="/run" method="POST" 
                       enctype="multipart/form-data" class="input-form">
                     <div class="div-header">Upload Text File:</div>
-                    <input type="file" name="textFile" accept=".txt"
-                    class="input-form"> <!-- removed 'required' -->
-                    
+                        <input type="file" name="textFile" accept=".txt"
+                        class="input-form"> <!-- removed 'required' -->
                     <div class="div-header">Experiment Parameters:</div>
-                    
                     <div class="form-group">
                         <label for="enzymeName">Enzyme Name:</label>
                         <input type="text" id="enzymeName" name="enzymeName" required
-                            value=Default>
+                            value=Protease>
                     </div>
                     
                     <div class="form-group">
-                        <label for="minS">Entropy Threshold:</label>
-                        <input type="number" id="minS" name="minS" 
+                        <label for="entropyMin">Entropy Threshold:</label>
+                        <input type="number" id="entropyMin" name="entropyMin" 
                         step="0.1" value="0.6" required>
                     </div>
                     
@@ -377,27 +363,23 @@ def home():
 
     title="Specificity Network Identification via Positional Entropy based Refinement "
           "(SNIPER)",
-
     header="Modeling Enzyme Specificity",
-
-    ct1="This program will take substrates for a given enzyme and identify the "
+    pg1="This program will take substrates for a given enzyme and identify the "
         "Motif, of the recognition sequence within the larger protein sequence. "
         "The Motif is identified by the positions in the substrate that have "
-        "Entropy scores (∆S) that exceed a minS value.",
-
-    ct2="∆S is evaluated at each position in the substrate sequence and is found by "
+        "Entropy scores (∆S) that exceed a entropyMin value.",
+    pg2="∆S is evaluated at each position in the substrate sequence and is found by "
         "the difference between the Maximum Entropy (S<sub>Max</sub>) and the "
         "Shannon Entropy (S<sub>Shannon</sub>)",
-
     equation="∆S = S<sub>Max</sub> - S<sub>Shannon</sub> = log<sub>2</sub>(20) - "
             "∑(-prob<sub>AA</sub> * log<sub>2</sub>(prob<sub>AA</sub>))",
-
-    ct3="Once we have identified the motif, we can select the most common AA sequences "
+    pg3="Once we have identified the motif, we can select the most common AA sequences "
         "and use them as input for a Suffix Tree. This will plot the preferred residues "
         "in descending order of Specificity, as determined by the ∆S values.",
-    ct4="The tree will reveal the Specificity Network of your enzyme. "
+    pg4="The tree will reveal the Specificity Network of your enzyme. "
         "In other words, we will be able to identify the AA preferences at a given "
-        "location in the motif when a specific AA is at an other position."
+        "location in the motif when a specific AA is at an other position.",
+    pg5="Uploaded files must be formatted as .txt"
 )
 
 
