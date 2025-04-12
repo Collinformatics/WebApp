@@ -20,6 +20,7 @@ labelSizeTicks = 13
 lineThickness = 1.5
 tickLength = 4
 figSize = (12, 9)
+figBorders = [0.882, 0.075, 0.05, 0.98]
 
 # Experimental parameters
 AA = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I',
@@ -151,7 +152,8 @@ def plotProbabilities(probAA, totalSubs, enzymeName):
     ax.set_ylabel('Residue', fontsize=labelSizeAxis)
     ax.set_title(f'\n{enzymeName}\nProbability Distribution',
                  fontsize=labelSizeTitle, fontweight='bold')
-    plt.tight_layout()
+    plt.subplots_adjust(top=figBorders[0], bottom=figBorders[1],
+                        left=figBorders[2]+0.01, right=figBorders[3]+0.085)
 
     # Set the thickness of the figure border
     for _, spine in ax.spines.items():
@@ -226,12 +228,14 @@ def plotEntropy(probAA, AA, enzymeName):
     cMap = [colorBar(normalize(value)) for value in entropy['ΔS'].astype(float)]
 
     # Plotting the entropy values as a bar graph
-    fig, ax = plt.subplots(figsize=(figSize[0], 6))
+    fig, ax = plt.subplots(figsize=(figSize[0], 7))
     plt.bar(entropy.index, entropy['ΔS'], color=cMap,
             edgecolor='black', linewidth=lineThickness, width=0.8)
     plt.xlabel('Substrate Position', fontsize=labelSizeAxis)
-    plt.ylabel('ΔS', fontsize=labelSizeAxis, rotation=90)
+    ax.set_ylabel('ΔS', fontsize=labelSizeAxis, rotation=0, labelpad=15)
     plt.title(f'{enzymeName}', fontsize=labelSizeTitle, fontweight='bold')
+    plt.subplots_adjust(top=figBorders[0], bottom=figBorders[1]+0.02,
+                        left=figBorders[2]+0.015, right=figBorders[3]-0.035)
 
     # Set tick parameters
     ax.tick_params(axis='both', which='major', length=tickLength,
@@ -281,8 +285,8 @@ def plotEntropy(probAA, AA, enzymeName):
 
 
 def plotWeblogo(probAA, entropy, entropyMax, N, enzymeName):
-    # AA Types: Aliphatic, Acidic, Basic, Hydroxyl, AmMpro22, Aromatic, Sulfur
-    letterColors = ['darkgreen','firebrick','deepskyblue','pink','navy','black','gold']
+    # AA Types: Aliphatic, Acidic, Basic, Hydroxyl, Amide, Aromatic, Sulfur
+    letterColors = ['darkgreen','firebrick','deepskyblue','pink','indigo','black','gold']
     
     # Set local parameters
     bigLettersOnTop = False
@@ -362,6 +366,8 @@ def plotWeblogo(probAA, entropy, entropyMax, N, enzymeName):
     for spine in ax.spines.values():
         spine.set_linewidth(lineThickness) # Set edge thickness
     ax.set_ylim(0, yMax) # Set axis limits
+    plt.subplots_adjust(top=figBorders[0], bottom=figBorders[1],
+                        left=figBorders[2], right=figBorders[3])
 
     # Label the axes
     motif.ax.set_xlabel('Position', fontsize=labelSizeAxis)
@@ -377,8 +383,7 @@ def plotWeblogo(probAA, entropy, entropyMax, N, enzymeName):
             # Plot grey boxes on each side of the xtick
             motif.ax.axvspan(index - spacer, index + spacer,
                              facecolor='darkgrey', alpha=0.2)
-    fig.tight_layout()
-    
+
     # Convert figure to base64
     imgStream = io.BytesIO()
     fig.savefig(imgStream, format='png')
@@ -415,9 +420,84 @@ def binSubstrates(substrates, entropy, entropyMin, NSelect):
     binnedSubs = dict(sorted(binnedSubs.items(), key=lambda item: item[1], reverse=True))
 
     # Plot: Binned substrates
+    # figBinCounts, figBinProb = plotBinnedSubstrates()
     figWords = plotWordCloud(binnedSubs)
 
     return figWords
+
+
+
+def plotBinnedSubstrates(substrates, N, ):
+    xValues = []
+    yValues = []
+    iteration = 0
+    if dataType == 'Probability':
+        for substrate, count in substrates.items():
+            xValues.append(str(substrate))
+            yValues.append(count / countsTotal)
+            iteration += 1
+            if iteration == numDatapoints:
+                break
+    else:
+        for substrate, count in substrates.items():
+            xValues.append(str(substrate))
+            yValues.append(count)
+            iteration += 1
+            if iteration == numDatapoints:
+                break
+
+    if dataType == 'Counts':
+        maxValue = math.ceil(max(yValues))
+        magnitude = math.floor(math.log10(maxValue))
+        unit = 10**(magnitude-1)
+        yMax = math.ceil(maxValue / unit) * unit
+        if yMax < max(yValues):
+            increaseValue = unit / 2
+            while yMax < max(yValues):
+                yMax += increaseValue
+            print('\n')
+        yMin = 0 # math.floor(min(yValues) / unit) * unit - spacer
+    elif dataType == 'Probability':
+        maxValue = max(yValues)
+        magnitude = math.floor(math.log10(maxValue))
+        adjustedMax = maxValue * 10**abs(magnitude)
+        yMax = math.ceil(adjustedMax) * 10**magnitude
+        adjVal = 5 * 10**(magnitude-1)
+        yMaxAdjusted = yMax - adjVal
+        if yMaxAdjusted > maxValue:
+            yMax = yMaxAdjusted
+        yMin = 0
+    else:
+        spacer = 0.2
+        yMax = np.ceil(max(yValues)) + spacer
+        yMin = np.floor(min(yValues))
+
+    # Plot the data
+    fig, ax = plt.subplots(figsize=(9.5, 8))
+    bars = plt.bar(xValues, yValues, color=barColor, width=barWidth)
+    plt.ylabel(dataType, fontsize=labelSizeAxis)
+    plt.title(title, fontsize=labelSizeTitle, fontweight='bold')
+    plt.axhline(y=0, color='black', linewidth=lineThickness)
+    plt.ylim(yMin, yMax)
+    fig.tight_layout()
+
+    # Set edge color
+    for bar in bars:
+        bar.set_edgecolor('black')
+
+    # Set tick parameters
+    ax.tick_params(axis='both', which='major', length=tickLength,
+                   labelsize=labelSizeTicks, width=lineThickness)
+    plt.xticks(rotation=90, ha='center')
+
+    # Set the thickness of the figure border
+    for _, spine in ax.spines.items():
+        spine.set_visible(True)
+        spine.set_linewidth(lineThickness)
+
+
+    
+
 
 
 def plotWordCloud(binnedSubs):
