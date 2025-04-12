@@ -516,7 +516,6 @@ def plotBinnedSubstrates(binnedSubs, N, NSelect, enzymeName):
     yMaxAdjusted = yMaxProb - adjVal
     if yMaxAdjusted > maxProb:
         yMaxProb = yMaxAdjusted
-    print(yMaxProb)
 
 
     # Make: Figures
