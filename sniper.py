@@ -225,7 +225,7 @@ def home():
                     margin-bottom: {{ marginButton }}px;
                 }
                 button:hover {
-                    background-color: {{ greenLight }};
+                    background-color: {{ greenHighlight }};
                 }
                 .input-form {
                     align-items: center;
@@ -393,7 +393,7 @@ def home():
     ''',
     black='#151515', white='FFFFFF',
     grey='#303030', greyDark='#202020',
-    green='#23FF55', greenLight='#1DE64A',
+    green='#23FF55', greenHighlight='#1AD747',
 
     spacer=20, spacerMini=5,
     padSide=50, padTB=30, padInput=8,
