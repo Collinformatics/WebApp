@@ -4,13 +4,13 @@ import logomaker
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap, Normalize
+from matplotlib.ticker import MaxNLocator
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy as np
 import pandas as pd
 import seaborn as sns
 import sys
 from wordcloud import WordCloud
-
 
 
 # Figure parameters
@@ -31,8 +31,9 @@ matplotlib.use('Agg')
 
 
 def processData(substrates, entropyMin, NSelect, enzymeName, defaultSubs):
-    subLen = len(next(iter(substrates)))
     if defaultSubs:
+        subLen = len(substrates[0])
+
         # Count: Substrates
         subsCounts = {}
         for sub in substrates:
@@ -47,8 +48,12 @@ def processData(substrates, entropyMin, NSelect, enzymeName, defaultSubs):
                         subsCounts[sub] += 1
                     else:
                         subsCounts[sub] = 1
+        substrates = subsCounts
     else:
-        subsCounts = substrates
+        subLen = len(next(iter(substrates)))
+
+    # Sort the dictionary by counts from highest to lowest
+    substrates = dict(sorted(substrates.items(), key=lambda item: item[1], reverse=True))
 
     # Define: Substrate positions
     pos = [f'R{index + 1}' for index in range(subLen)]
@@ -446,6 +451,10 @@ def plotBinnedSubstrates(binnedSubs, N, NSelect, enzymeName):
         plt.axhline(y=0, color='black', linewidth=lineThickness)
         plt.ylim(yMin, yMax)
 
+        # Integer y-ticks if appropriate
+        if yLabel == 'Counts' and yMax < 100:
+            ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+
         # Set edge color
         for bar in bars:
             bar.set_edgecolor('black')
@@ -468,6 +477,8 @@ def plotBinnedSubstrates(binnedSubs, N, NSelect, enzymeName):
 
         return figBarGraph
 
+    # Convert to integer
+    NSelect = int(NSelect)
 
     # Evaluate: Counts
     NBinSubs = 0
@@ -481,12 +492,15 @@ def plotBinnedSubstrates(binnedSubs, N, NSelect, enzymeName):
         if NBinSubs == NSelect:
             break
     maxCounts, maxProb = np.ceil(max(yCount)), max(yProb)
-    print(f'N: {NBinSubs}')
+
 
     # Evaluate: Counts
     magnitude = np.floor(np.log10(maxCounts))
     unit = 10**(magnitude-1)
-    yMaxCount = np.ceil(maxCounts / unit) * unit
+    if magnitude == 0:
+        yMaxCount = maxCounts + 1
+    else:
+        yMaxCount = np.ceil(maxCounts / unit) * unit
     if yMaxCount < max(yCount):
         increaseValue = unit / 2
         while yMaxCount < max(yCount):
@@ -496,10 +510,13 @@ def plotBinnedSubstrates(binnedSubs, N, NSelect, enzymeName):
     magnitude = np.floor(np.log10(maxProb))
     adjustedMax = maxProb * 10**abs(magnitude)
     yMaxProb = np.ceil(adjustedMax) * 10**magnitude
-    adjVal = 5 * 10**(magnitude-1)
+    if yMaxProb == maxProb:
+        yMaxProb += 10**magnitude
+    adjVal = 5 * 10 ** (magnitude - 1)
     yMaxAdjusted = yMaxProb - adjVal
     if yMaxAdjusted > maxProb:
         yMaxProb = yMaxAdjusted
+
 
     # Make: Figures
     figBinCounts = plotBarGraph(xCount, yCount, yMaxCount, 'Counts', enzymeName)

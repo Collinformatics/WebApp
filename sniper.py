@@ -1,8 +1,7 @@
 from flask import Flask, jsonify, render_template_string, request
 import numpy as np
 import pandas as pd
-from functions import (binSubstrates, plotEntropy, plotProbabilities, plotWeblogo,
-                       processData, subsDefault)
+from functions import processData, subsDefault
 import sys
 
 
@@ -17,7 +16,6 @@ def run():
         loadFile = False
         if substrates:
             loadFile = True
-            print('Subs: Load')
 
             # Read the contents of the file
             substrate = substrates.read().decode('utf-8')
@@ -26,7 +24,6 @@ def run():
             substrates = substrate.splitlines()
         else:
             substrates = subsDefault()
-            print('Subs: Default')
 
     except Exception as e:
         return jsonify({"error": f"Error A: {str(e)}"}), 400
@@ -39,7 +36,6 @@ def run():
 
     # Evaluate: Data
     dataset = processData(substrates, entropyMin, selectNSubs, enzymeName, loadFile)
-    print(f'Dataset: {dataset['NBinSubs']}')
 
     result = {
         "enzyme": enzymeName,
@@ -112,7 +108,6 @@ def home():
                 .container-params {
                     background-color: {{ grey }};
                     font-size: 20px;
-                    text-align: center;
                     border-radius: {{ borderRad }}px;
                     display: flex;
                     flex-direction: column;
@@ -218,7 +213,6 @@ def home():
                     alert("Please fill out all required fields.");
                     return;
                 }
-        
                 const formData = new FormData();
                 formData.append('enzymeName', enzymeName);
                 formData.append('entropyMin', entropyMin);
@@ -226,7 +220,6 @@ def home():
                 if (textFile) {
                     formData.append('textFile', textFile);
                 }
-        
                 fetch('/run', {
                     method: 'POST',
                     body: formData
@@ -251,10 +244,9 @@ def home():
                         margin: "{{ spacer }}px auto",
                         marginBottom: "{{ marginB }}px"
                     });
-                    
                     newDiv.innerHTML = `
                         <div class="div-header">Results:</div>
-                        <div class=container-params> 
+                        <div class=container-params>
                             <p><strong>Enzyme:</strong> ${enzymeName}</p>
                             <p><strong>Min Entropy:</strong> ${entropyMin}</p>
                             <p><strong>Selecting Substrates:</strong> ${data.NBinSubs}</p>
