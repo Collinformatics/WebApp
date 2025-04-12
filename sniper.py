@@ -190,6 +190,10 @@ def home():
                     align-items: center;
                     padding: 50px 0px 0px 0px;
                     margin: 5px auto;
+                    margin-top: 0px
+                }
+                .container-fig img {
+                    margin-top: 0px;
                 }
                 .div-header {
                     color: #23FF55;
@@ -285,6 +289,18 @@ def home():
                 .then(data => {
                     const newDiv = document.createElement('div');
                     newDiv.className = 'container';
+                    Object.assign(newDiv.style, {
+                        backgroundColor: "{{ grey }}",
+                        fontSize: "20px",
+                        textAlign: "center",
+                        borderRadius: "{{ borderRad }}px",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        padding: "{{ padTB }}px {{ padSide }}px {{ padTB }}px {{ padSide }}px",
+                        margin: "{{ spacer }}px auto",
+                        marginBottom: "{{ marginB }}px"
+                    });
                     
                     newDiv.innerHTML = `
                         <div class="div-header">Results:</div>
@@ -304,20 +320,20 @@ def home():
                             <div class="div-header">
                                 Positional Entropy (ΔS):
                             </div>
-                             <div class=figDescription>
+                             <div class=container-figDescription>
                                 <p>{{ equation|safe }}</p>
                              </div>
                             <p><img src="data:image/png;base64,${data.figEntropy}" 
                                 alt="Entropy Plot" style="max-width: 100%;" /></p>
                         </div>
-                            <div class="div-header">
-                                pLogo:
-                            </div>
-                            <div class=figDescription>
-                                <p>ΔS × probability<sub>AA</sub></p>
-                             </div>
                         <div class=container-fig> 
-                        
+                            <div class="div-header">
+                                    pLogo:
+                                </div>
+                                <div class=container-figDescription>
+                                    <p>Letter Size = ΔS<sub>Pos</sub> × 
+                                        prob<sub>AA@Pos</sub></p>
+                                 </div>
                             <p><img src="data:image/png;base64,${data.figLogo}" 
                                 alt="pLogfo" style="max-width: 100%;" /></p>
                         </div>
@@ -337,7 +353,7 @@ def home():
         <body>
             <h1>{{ title|safe }}</h1>
             <div class="container-description">
-                <p>{{ header|safe }}</p>
+                <div class="div-header">{{ header|safe }}</div>
                 <p>{{ pg1|safe }}</p>
                 <p>{{ pg2|safe }}</p>
                 <p>{{ equation|safe }}</p>
