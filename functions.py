@@ -1,7 +1,5 @@
 import base64
 import io
-import sys
-
 import logomaker
 import matplotlib
 import matplotlib.pyplot as plt
@@ -10,7 +8,9 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy as np
 import pandas as pd
 import seaborn as sns
+import sys
 from wordcloud import WordCloud
+
 
 
 # Figure parameters
@@ -24,7 +24,7 @@ figBorders = [0.882, 0.075, 0.05, 0.98]
 
 # Experimental parameters
 AA = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I',
-              'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V']
+      'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V']
 
 # Set matplotlib backend as non-interactive
 matplotlib.use('Agg')
@@ -68,14 +68,18 @@ def processData(substrates, entropyMin, NSelect, enzymeName, defaultSubs):
     figProb = plotProbabilities(probAA, totalSubs, enzymeName)
     entropy, entropyMax, figEntropy = plotEntropy(probAA, AA, enzymeName)
     figLogo = plotWeblogo(probAA, entropy, entropyMax, totalSubs, enzymeName)
-    figWords = binSubstrates(substrates, entropy, entropyMin, NSelect)
+    NBinSubs, figBarCounts, figBarProb, figWords = binSubstrates(
+        substrates, entropy, entropyMin, NSelect, enzymeName)
 
     # Create dataset
     dataset = {}
     dataset['N'] = totalSubs
+    dataset['NBinSubs'] = NBinSubs
     dataset['probability'] = figProb
     dataset['entropy'] = figEntropy
     dataset['pLogo'] = figLogo
+    dataset['barCounts'] = figBarCounts
+    dataset['barProb'] = figBarProb
     dataset['words'] = figWords
 
     return dataset
@@ -85,8 +89,8 @@ def processData(substrates, entropyMin, NSelect, enzymeName, defaultSubs):
 def subsDefault():
     substrates = {
         'VVLQAGTK': 19076,
-        'LILQSVGA': 18783,
-        'VALQSACW': 17331,
+        'VILQSVGA': 18383,
+        'LALQSACW': 17331,
         'LNLQGILD': 16201,
         'IYLQALMP': 16010,
 
@@ -393,7 +397,7 @@ def plotWeblogo(probAA, entropy, entropyMax, N, enzymeName):
     return figLogo
 
 
-def binSubstrates(substrates, entropy, entropyMin, NSelect):
+def binSubstrates(substrates, entropy, entropyMin, NSelect, enzymeName):
     # Identify the locations of specificity
     posSpecific = []
     entropyMin = float(entropyMin)
@@ -405,98 +409,106 @@ def binSubstrates(substrates, entropy, entropyMin, NSelect):
     indexStart = entropy.index.get_loc(posSpecific[0])
     indexEnd = entropy.index.get_loc(posSpecific[-1]) + 1
     binnedSubs = {}
-    countTotalSubstrates = 0
-    countUniqueSubstrates = 0
+    countTotalSubs = 0
+    countUniqueSubs = 0
     for substrate, count in substrates.items():
-        countTotalSubstrates += count
+        countTotalSubs += count
         sub = substrate[indexStart:indexEnd]
         if sub in binnedSubs.keys():
             binnedSubs[sub] += count
         else:
             binnedSubs[sub] = count
-            countUniqueSubstrates += 1
+            countUniqueSubs += 1
 
     # Sort the dictionary by counts from highest to lowest
     binnedSubs = dict(sorted(binnedSubs.items(), key=lambda item: item[1], reverse=True))
 
     # Plot: Binned substrates
-    # figBinCounts, figBinProb = plotBinnedSubstrates()
+    NBinSubs, figBinCounts, figBinProb, figWords = plotBinnedSubstrates(
+        binnedSubs, countTotalSubs, NSelect, enzymeName)
+
+
+    return NBinSubs, figBinCounts, figBinProb, figWords
+
+
+
+def plotBinnedSubstrates(binnedSubs, N, NSelect, enzymeName):
+    def plotBarGraph(xValues, yValues, yMax, yLabel, title):
+        barColor = '#23FF55'
+        barWidth = 0.75
+        yMin = 0
+
+        # Plot the data
+        fig, ax = plt.subplots(figsize=figSize)
+        bars = plt.bar(xValues, yValues, color=barColor, width=barWidth)
+        plt.ylabel(yLabel, fontsize=labelSizeAxis)
+        plt.title(title, fontsize=labelSizeTitle, fontweight='bold')
+        plt.axhline(y=0, color='black', linewidth=lineThickness)
+        plt.ylim(yMin, yMax)
+
+        # Set edge color
+        for bar in bars:
+            bar.set_edgecolor('black')
+
+        # Set tick parameters
+        ax.tick_params(axis='both', which='major', length=tickLength,
+                       labelsize=labelSizeTicks, width=lineThickness)
+        plt.xticks(rotation=90, ha='center')
+
+        # Set the thickness of the figure border
+        for _, spine in ax.spines.items():
+            spine.set_visible(True)
+            spine.set_linewidth(lineThickness)
+
+        # Convert figure to base64
+        imgStream = io.BytesIO()
+        fig.savefig(imgStream, format='png')
+        imgStream.seek(0)
+        figBarGraph = base64.b64encode(imgStream.read()).decode('utf-8')
+
+        return figBarGraph
+
+
+    # Evaluate: Counts
+    NBinSubs = 0
+    xCount, yCount, xProb, yProb = [], [], [], []
+    for substrate, count in binnedSubs.items():
+        NBinSubs += 1
+        xCount.append(str(substrate))
+        yCount.append(count)
+        xProb.append(str(substrate))
+        yProb.append(count / N)
+        if NBinSubs == NSelect:
+            break
+    maxCounts, maxProb = np.ceil(max(yCount)), max(yProb)
+    print(f'N: {NBinSubs}')
+
+    # Evaluate: Counts
+    magnitude = np.floor(np.log10(maxCounts))
+    unit = 10**(magnitude-1)
+    yMaxCount = np.ceil(maxCounts / unit) * unit
+    if yMaxCount < max(yCount):
+        increaseValue = unit / 2
+        while yMaxCount < max(yCount):
+            yMaxCount += increaseValue
+
+    # Evaluate: Prob
+    magnitude = np.floor(np.log10(maxProb))
+    adjustedMax = maxProb * 10**abs(magnitude)
+    yMaxProb = np.ceil(adjustedMax) * 10**magnitude
+    adjVal = 5 * 10**(magnitude-1)
+    yMaxAdjusted = yMaxProb - adjVal
+    if yMaxAdjusted > maxProb:
+        yMaxProb = yMaxAdjusted
+
+    # Make: Figures
+    figBinCounts = plotBarGraph(xCount, yCount, yMaxCount, 'Counts', enzymeName)
+    figBinProb = plotBarGraph(xProb, yProb, yMaxProb, 'Probability', enzymeName)
+
+    # Evaluate: Word cloud
     figWords = plotWordCloud(binnedSubs)
 
-    return figWords
-
-
-
-def plotBinnedSubstrates(substrates, N, ):
-    xValues = []
-    yValues = []
-    iteration = 0
-    if dataType == 'Probability':
-        for substrate, count in substrates.items():
-            xValues.append(str(substrate))
-            yValues.append(count / countsTotal)
-            iteration += 1
-            if iteration == numDatapoints:
-                break
-    else:
-        for substrate, count in substrates.items():
-            xValues.append(str(substrate))
-            yValues.append(count)
-            iteration += 1
-            if iteration == numDatapoints:
-                break
-
-    if dataType == 'Counts':
-        maxValue = math.ceil(max(yValues))
-        magnitude = math.floor(math.log10(maxValue))
-        unit = 10**(magnitude-1)
-        yMax = math.ceil(maxValue / unit) * unit
-        if yMax < max(yValues):
-            increaseValue = unit / 2
-            while yMax < max(yValues):
-                yMax += increaseValue
-            print('\n')
-        yMin = 0 # math.floor(min(yValues) / unit) * unit - spacer
-    elif dataType == 'Probability':
-        maxValue = max(yValues)
-        magnitude = math.floor(math.log10(maxValue))
-        adjustedMax = maxValue * 10**abs(magnitude)
-        yMax = math.ceil(adjustedMax) * 10**magnitude
-        adjVal = 5 * 10**(magnitude-1)
-        yMaxAdjusted = yMax - adjVal
-        if yMaxAdjusted > maxValue:
-            yMax = yMaxAdjusted
-        yMin = 0
-    else:
-        spacer = 0.2
-        yMax = np.ceil(max(yValues)) + spacer
-        yMin = np.floor(min(yValues))
-
-    # Plot the data
-    fig, ax = plt.subplots(figsize=(9.5, 8))
-    bars = plt.bar(xValues, yValues, color=barColor, width=barWidth)
-    plt.ylabel(dataType, fontsize=labelSizeAxis)
-    plt.title(title, fontsize=labelSizeTitle, fontweight='bold')
-    plt.axhline(y=0, color='black', linewidth=lineThickness)
-    plt.ylim(yMin, yMax)
-    fig.tight_layout()
-
-    # Set edge color
-    for bar in bars:
-        bar.set_edgecolor('black')
-
-    # Set tick parameters
-    ax.tick_params(axis='both', which='major', length=tickLength,
-                   labelsize=labelSizeTicks, width=lineThickness)
-    plt.xticks(rotation=90, ha='center')
-
-    # Set the thickness of the figure border
-    for _, spine in ax.spines.items():
-        spine.set_visible(True)
-        spine.set_linewidth(lineThickness)
-
-
-    
+    return NBinSubs, figBinCounts, figBinProb, figWords
 
 
 
@@ -516,7 +528,7 @@ def plotWordCloud(binnedSubs):
 
 
     # Create a figure
-    fig, ax = plt.subplots(figsize=figSize)  # Match width/height scaling
+    fig, ax = plt.subplots(figsize=figSize)
     ax.imshow(wordcloud, interpolation='bilinear')
     ax.axis('off') # Turn off axis
 

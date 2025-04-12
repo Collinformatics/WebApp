@@ -39,14 +39,18 @@ def run():
 
     # Evaluate: Data
     dataset = processData(substrates, entropyMin, selectNSubs, enzymeName, loadFile)
+    print(f'Dataset: {dataset['NBinSubs']}')
 
     result = {
         "enzyme": enzymeName,
         "entropyMin": entropyMin,
         "selectNSubs": selectNSubs,
+        "NBinSubs": dataset['NBinSubs'],
         "figProb": dataset['probability'],
         "figEntropy": dataset['entropy'],
         "figLogo": dataset['pLogo'],
+        "barCounts": dataset['barCounts'],
+        "barProb": dataset['barProb'],
         "figWords": dataset['words']
     }
 
@@ -243,6 +247,7 @@ def home():
                         flexDirection: "column",
                         alignItems: "center",
                         padding: "{{ padTB }}px {{ padSide }}px {{ padTB }}px {{ padSide }}px",
+                        padding: "{{ padTB }}px {{ padSide }}px {{ padTB }}px {{ padSide }}px",
                         margin: "{{ spacer }}px auto",
                         marginBottom: "{{ marginB }}px"
                     });
@@ -252,7 +257,7 @@ def home():
                         <div class=container-params> 
                             <p><strong>Enzyme:</strong> ${enzymeName}</p>
                             <p><strong>Min Entropy:</strong> ${entropyMin}</p>
-                            <p><strong>Selecting Substrates:</strong> ${N}</p>
+                            <p><strong>Selecting Substrates:</strong> ${data.NBinSubs}</p>
                         </div>
                         <div class=container-fig>
                             <div class="div-header">
@@ -285,10 +290,27 @@ def home():
                         <div class=container-fig> 
                             <div class="div-header">
                                     Substrate Motif:
-                                </div>
-                                <div class=container-figDescription>
-                                    <p>Word Cloud:</p>
-                                 </div>
+                            </div>
+                            <p>Unique Motifs = ${data.NBinSubs}</p>
+                            <div class=container-figDescription>
+                                <p>Motif Counts:</p>
+                            </div>
+                            <p><img src="data:image/png;base64,${data.barCounts}" 
+                                alt="Bar Graph: Motif Counts" 
+                                style="max-width: 100%;" /></p>
+                        </div>
+                        <div class=container-fig> 
+                            <div class=container-figDescription>
+                                <p>Motif Probability:</p>
+                            </div>
+                            <p><img src="data:image/png;base64,${data.barProb}" 
+                                alt="Bar Graph: Motif Probability" 
+                                style="max-width: 100%;" /></p>
+                        </div>
+                        <div class=container-fig> 
+                            <div class=container-figDescription>
+                                <p>Word Cloud:</p>
+                            </div>
                             <p><img src="data:image/png;base64,${data.figWords}" 
                                 alt="pLogfo" style="max-width: 100%;" /></p>
                         </div>
