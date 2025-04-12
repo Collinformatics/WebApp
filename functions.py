@@ -18,8 +18,64 @@ lineThickness = 1.5
 tickLength = 4
 figSize = (12, 9)
 
+# Experimental parameters
+AA = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I',
+              'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V']
+
 # Set matplotlib backend as non-interactive
 matplotlib.use('Agg')
+
+
+def processData(subs, entropyMin, enzymeName, defaultSubs):
+    subLen = len(next(iter(subs)))
+    if defaultSubs:
+        # Count: Substrates
+        subsCounts = {}
+        for sub in subs:
+            if len(sub) == subLen:
+                keepSub = True
+                for aa in sub:
+                    if aa not in AA:
+                        keepSub = False
+                        break
+                if keepSub:
+                    if sub in subsCounts.keys():
+                        subsCounts[sub] += 1
+                    else:
+                        subsCounts[sub] = 1
+    else:
+        subsCounts = subs
+
+    # Define: Substrate positions
+    pos = [f'R{index + 1}' for index in range(subLen)]
+
+    # Count AAs
+    totalSubs = 0
+    countedAA = pd.DataFrame(0, index=AA, columns=pos)
+    for sub, count in subs.items():
+        totalSubs += count
+        for index, aa in enumerate(sub):
+            countedAA.loc[aa, pos[index]] += count
+
+    # Evaluate: AA probability
+    probAA = countedAA / totalSubs
+
+    # Figure: Entropy
+    figProb = plotProbabilities(probAA, totalSubs, enzymeName)
+    entropy, entropyMax, figEntropy = plotEntropy(probAA, AA, enzymeName)
+    figLogo = plotWeblogo(probAA, entropy, entropyMax, totalSubs, enzymeName)
+    figWords = binSubstrates(subs, entropy, entropyMin)
+
+    # Create dataset
+    dataset = {}
+    dataset['N'] = totalSubs
+    dataset['probability'] = figProb
+    dataset['entropy'] = figEntropy
+    dataset['pLogo'] = figLogo
+    dataset['words'] = figWords
+
+    return dataset
+
 
 
 def subsDefault():

@@ -2,66 +2,11 @@ from flask import Flask, jsonify, render_template_string, request
 import numpy as np
 import pandas as pd
 from functions import (binSubstrates, plotEntropy, plotProbabilities, plotWeblogo,
-                       subsDefault)
+                       processData, subsDefault)
 import sys
 
 
 app = Flask(__name__)
-
-AA = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I',
-              'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V']
-
-
-
-def processData(subs, entropyMin, enzymeName, defaultSubs):
-    subLen = len(next(iter(subs)))
-    if defaultSubs:
-        # Count: Substrates
-        subsCounts = {}
-        for sub in subs:
-            if len(sub) == subLen:
-                keepSub = True
-                for aa in sub:
-                    if aa not in AA:
-                        keepSub = False
-                        break
-                if keepSub:
-                    if sub in subsCounts.keys():
-                        subsCounts[sub] += 1
-                    else:
-                        subsCounts[sub] = 1
-    else:
-        subsCounts = subs
-
-    # Define: Substrate positions
-    pos = [f'R{index + 1}' for index in range(subLen)]
-
-    # Count AAs
-    totalSubs = 0
-    countedAA = pd.DataFrame(0, index=AA, columns=pos)
-    for sub, count in subs.items():
-        totalSubs += count
-        for index, aa in enumerate(sub):
-            countedAA.loc[aa, pos[index]] += count
-
-    # Evaluate: AA probability
-    probAA = countedAA / totalSubs
-
-    # Figure: Entropy
-    figProb = plotProbabilities(probAA, totalSubs, enzymeName)
-    entropy, entropyMax, figEntropy = plotEntropy(probAA, AA, enzymeName)
-    figLogo = plotWeblogo(probAA, entropy, entropyMax, totalSubs, enzymeName)
-    figWords = binSubstrates(subs, entropy, entropyMin)
-
-    # Create dataset
-    dataset = {}
-    dataset['N'] = totalSubs
-    dataset['probability'] = figProb
-    dataset['entropy'] = figEntropy
-    dataset['pLogo'] = figLogo
-    dataset['words'] = figWords
-
-    return dataset
 
 
 @app.route('/run', methods=['POST'])
