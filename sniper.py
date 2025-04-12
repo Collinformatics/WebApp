@@ -38,7 +38,7 @@ def run():
     selectNSubs = request.form.get('N')
 
     # Evaluate: Data
-    dataset = processData(substrates, entropyMin, enzymeName, loadFile)
+    dataset = processData(substrates, entropyMin, selectNSubs, enzymeName, loadFile)
 
     result = {
         "enzyme": enzymeName,
@@ -280,6 +280,16 @@ def home():
                                         prob<sub>AA@Pos</sub></p>
                                  </div>
                             <p><img src="data:image/png;base64,${data.figLogo}" 
+                                alt="pLogfo" style="max-width: 100%;" /></p>
+                        </div>
+                        <div class=container-fig> 
+                            <div class="div-header">
+                                    Substrate Motif:
+                                </div>
+                                <div class=container-figDescription>
+                                    <p>Word Cloud:</p>
+                                 </div>
+                            <p><img src="data:image/png;base64,${data.figWords}" 
                                 alt="pLogfo" style="max-width: 100%;" /></p>
                         </div>
                     `;

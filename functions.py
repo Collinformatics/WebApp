@@ -1,5 +1,7 @@
 import base64
 import io
+import sys
+
 import logomaker
 import matplotlib
 import matplotlib.pyplot as plt
@@ -8,7 +10,8 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from setuptools.command.rotate import rotate
+from wordcloud import WordCloud
+
 
 # Figure parameters
 labelSizeTitle = 18
@@ -26,12 +29,12 @@ AA = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I',
 matplotlib.use('Agg')
 
 
-def processData(subs, entropyMin, enzymeName, defaultSubs):
-    subLen = len(next(iter(subs)))
+def processData(substrates, entropyMin, NSelect, enzymeName, defaultSubs):
+    subLen = len(next(iter(substrates)))
     if defaultSubs:
         # Count: Substrates
         subsCounts = {}
-        for sub in subs:
+        for sub in substrates:
             if len(sub) == subLen:
                 keepSub = True
                 for aa in sub:
@@ -44,7 +47,7 @@ def processData(subs, entropyMin, enzymeName, defaultSubs):
                     else:
                         subsCounts[sub] = 1
     else:
-        subsCounts = subs
+        subsCounts = substrates
 
     # Define: Substrate positions
     pos = [f'R{index + 1}' for index in range(subLen)]
@@ -52,7 +55,7 @@ def processData(subs, entropyMin, enzymeName, defaultSubs):
     # Count AAs
     totalSubs = 0
     countedAA = pd.DataFrame(0, index=AA, columns=pos)
-    for sub, count in subs.items():
+    for sub, count in substrates.items():
         totalSubs += count
         for index, aa in enumerate(sub):
             countedAA.loc[aa, pos[index]] += count
@@ -64,7 +67,7 @@ def processData(subs, entropyMin, enzymeName, defaultSubs):
     figProb = plotProbabilities(probAA, totalSubs, enzymeName)
     entropy, entropyMax, figEntropy = plotEntropy(probAA, AA, enzymeName)
     figLogo = plotWeblogo(probAA, entropy, entropyMax, totalSubs, enzymeName)
-    figWords = binSubstrates(subs, entropy, entropyMin)
+    figWords = binSubstrates(substrates, entropy, entropyMin, NSelect)
 
     # Create dataset
     dataset = {}
@@ -79,38 +82,39 @@ def processData(subs, entropyMin, enzymeName, defaultSubs):
 
 
 def subsDefault():
-    subs = {'VVLQAGTK': 19076,
-            'LILQSVGA': 18783,
-            'VALQSACW': 17331,
-            'LNLQGILD': 16201,
-            'IYLQALMP': 16010,
+    substrates = {
+        'VVLQAGTK': 19076,
+        'LILQSVGA': 18783,
+        'VALQSACW': 17331,
+        'LNLQGILD': 16201,
+        'IYLQALMP': 16010,
 
-            'TSLQARKS': 15449,
-            'AFLQAHFT': 15175,
-            'VTLQCTYS': 14330,
-            'VLLQAKQL': 14201,
-            'LVLQANPC': 14010,
+        'TSLQARKS': 15449,
+        'AFLQAHFT': 15175,
+        'VTLQCTYS': 14330,
+        'VLLQAKQL': 14201,
+        'LVLQANPC': 14010,
 
-            'IMLQGVIW': 13449,
-            'AGLQASAH': 12175,
-            'MHLQSENE': 11330,
-            'MVLQGDVN': 10201,
-            'YGLQCNEV': 10010,
+        'IMLQGVIW': 13449,
+        'AGLQASAH': 12175,
+        'KHLQSENE': 11330,
+        'MVLQGDVN': 10201,
+        'YGLQCNEV': 10010,
 
-            'KCMQAQVQ': 9449,
-            'GELQSWHF': 9005,
-            'CDMQCMWG': 7330,
-            'VWMQCSII': 7013,
-            'IVMQCCSM': 6276,
+        'VCMQCQVQ': 9449,
+        'GELQSWHF': 9005,
+        'VDMQCMWG': 7330,
+        'VWMQCSII': 7013,
+        'VVMQCCSM': 6276,
 
-            'VLIQCCPR': 1991,
-            'VVMQSGSM': 1754,
-            'VVFQCHNR': 1576,
-            'PRFQCKLR': 1234,
-            'VEFQCCLQ': 900
-            }
+        'VLIQCCPR': 1991,
+        'VVMQSGSM': 1754,
+        'VVFQCHNR': 1576,
+        'KRFQCKLR': 1234,
+        'PEFQCCLQ': 900
+        }
 
-    return subs
+    return substrates
 
 
 
@@ -180,7 +184,7 @@ def plotProbabilities(probAA, totalSubs, enzymeName):
     cbar.outline.set_linewidth(lineThickness)
     cbar.outline.set_edgecolor('black')
 
-    # Convert the plot to a base64-encoded string
+    # Convert figure to base64
     imgStream = io.BytesIO()
     fig.savefig(imgStream, format='png')
     imgStream.seek(0)
@@ -266,7 +270,7 @@ def plotEntropy(probAA, AA, enzymeName):
         tick.tick1line.set_markeredgewidth(lineThickness)  # Set tick width
     cbar.outline.set_linewidth(lineThickness)
 
-    # Convert the plot to a base64-encoded string
+    # Convert figure to base64
     imgStream = io.BytesIO()
     fig.savefig(imgStream, format='png')
     imgStream.seek(0)
@@ -375,7 +379,7 @@ def plotWeblogo(probAA, entropy, entropyMax, N, enzymeName):
                              facecolor='darkgrey', alpha=0.2)
     fig.tight_layout()
     
-    # Convert the plot to a base64-encoded string
+    # Convert figure to base64
     imgStream = io.BytesIO()
     fig.savefig(imgStream, format='png')
     imgStream.seek(0)
@@ -383,19 +387,64 @@ def plotWeblogo(probAA, entropy, entropyMax, N, enzymeName):
 
     return figLogo
 
-def binSubstrates(substrates, entropy, entropyMin):
+
+def binSubstrates(substrates, entropy, entropyMin, NSelect):
     # Identify the locations of specificity
     posSpecific = []
     entropyMin = float(entropyMin)
     for pos in entropy.index:
-        print(pos, posSpecific)
         if entropy.loc[pos, 'ΔS'] >= entropyMin:
             posSpecific.append(pos)
-    # print(posSpecific, type{posSpecific[0]})
-    # indexStart = entropy.index[posSpecific[0]]
-    # indexEnd = entropy.index[posSpecific[-1]]
-    # print(indexStart, indexEnd)
 
-    figWords = None
+    # Bin substrates
+    indexStart = entropy.index.get_loc(posSpecific[0])
+    indexEnd = entropy.index.get_loc(posSpecific[-1]) + 1
+    binnedSubs = {}
+    countTotalSubstrates = 0
+    countUniqueSubstrates = 0
+    for substrate, count in substrates.items():
+        countTotalSubstrates += count
+        sub = substrate[indexStart:indexEnd]
+        if sub in binnedSubs.keys():
+            binnedSubs[sub] += count
+        else:
+            binnedSubs[sub] = count
+            countUniqueSubstrates += 1
+
+    # Sort the dictionary by counts from highest to lowest
+    binnedSubs = dict(sorted(binnedSubs.items(), key=lambda item: item[1], reverse=True))
+
+    # Plot: Binned substrates
+    figWords = plotWordCloud(binnedSubs)
+
+    return figWords
+
+
+def plotWordCloud(binnedSubs):
+    cmap = createCustomColorMap(colorType='Word Cloud')
+
+    # Create word cloud
+    wordcloud = (WordCloud(
+        width=950,
+        height=800,
+        background_color='white',
+        min_font_size=10,  # Minimum font size
+        max_font_size=100,  # Maximum font size
+        scale=5,  # Increase scale for larger words
+        colormap=cmap  # cool, hsv, plasma, _
+    ).generate_from_frequencies(binnedSubs))
+
+
+    # Create a figure
+    fig, ax = plt.subplots(figsize=figSize)  # Match width/height scaling
+    ax.imshow(wordcloud, interpolation='bilinear')
+    ax.axis('off') # Turn off axis
+
+    # Convert figure to base64
+    imgStream = io.BytesIO()
+    fig.savefig(imgStream, format='png', bbox_inches='tight', pad_inches=0.1)
+    plt.close(fig)  # Close figure to free memory
+    imgStream.seek(0)
+    figWords = base64.b64encode(imgStream.read()).decode('utf-8')
 
     return figWords
