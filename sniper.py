@@ -32,15 +32,16 @@ def run():
     # Get other data from the form
     enzymeName = request.form.get('enzymeName')
     entropyMin = request.form.get('entropyMin')
-    selectNSubs = request.form.get('N')
+    NSelect = request.form.get('N')
+    NSelect = int(NSelect) - 1
 
     # Evaluate: Data
-    dataset = processData(substrates, entropyMin, selectNSubs, enzymeName, loadFile)
+    dataset = processData(substrates, entropyMin, NSelect, enzymeName, loadFile)
 
     result = {
         "enzyme": enzymeName,
         "entropyMin": entropyMin,
-        "selectNSubs": selectNSubs,
+        "NSelect": NSelect,
         "NBinSubs": dataset['NBinSubs'],
         "figProb": dataset['probability'],
         "figEntropy": dataset['entropy'],
@@ -100,8 +101,7 @@ def home():
                     display: flex;
                     flex-direction: column;
                     align-items: center;
-                    padding: {{ padTB }}px {{ padSide }}px 
-                             {{ marginB }}px {{ padSide }}px;
+                    padding: {{ padTB }}px {{ padSide }}px {{ marginB }}px {{ padSide }}px;
                     margin: {{ spacer }}px auto;
                     margin-bottom: {{ marginB }}px;
                 }
@@ -129,7 +129,7 @@ def home():
                     margin: 5px auto;
                 }
                 .container-figDescription {
-                    font-size: 16px;
+                    font-size: 18px;
                     text-align: center;
                     display: flex;
                     flex-direction: column;
@@ -152,8 +152,8 @@ def home():
                     margin-top: 0px;
                 }
                 .div-header {
-                    color: #23FF55;
-                    font-size: 20px;
+                    color: {{ green }};
+                    font-size: 22px;
                     font-weight: normal;
                     padding-top: 0px;
                     padding-bottom: 5px;
@@ -193,6 +193,7 @@ def home():
                 .form-group {
                     width: 100%;
                     max-width: 350px;
+                    line-height: 1.5;
                 }
                 .form-group label {
                     display: block;
@@ -262,6 +263,7 @@ def home():
                             <p><strong>Enzyme:</strong> ${enzymeName}</p>
                             <p><strong>Min Entropy:</strong> ${entropyMin}</p>
                             <p><strong>Selecting Substrates:</strong> ${data.NBinSubs}</p>
+                            <p><strong>Unique Motifs Obtained:</strong> ${data.NBinSubs}</p>
                         </div>
                         <div class=container-fig>
                             <div class="div-header">
@@ -295,7 +297,7 @@ def home():
                             <div class="div-header">
                                     Substrate Motif:
                             </div>
-                            <p>Unique Motifs = ${data.NBinSubs}</p>
+
                             <div class=container-figDescription>
                                 <p>Motif Counts:</p>
                             </div>
@@ -334,7 +336,7 @@ def home():
         <body>
             <h1>{{ title|safe }}</h1>
             <div class="container-description">
-                <div class="div-header">{{ header|safe }}</div>
+                <div class="div-header">Description:</div>
                 <p>{{ pg1|safe }}</p>
                 <p>{{ pg2|safe }}</p>
                 <p>{{ equation|safe }}</p>
@@ -375,17 +377,13 @@ def home():
     black='#151515', white='FFFFFF',
     grey='#303030', greyDark='#202020',
     green='#23FF55', greenHighlight='#1AD747',
-
     spacer=20, spacerMini=5,
     padSide=50, padTB=30, padInput=8,
     marginB=12, marginButton=12,
     fontSize=16,
     borderRad=5,
-
-
     title="Specificity Network Identification via Positional Entropy based Refinement "
           "(SNIPER)",
-    header="Description:",
     pg1="This program will take substrates for a given enzyme and identify the "
         "Motif, of the recognition sequence within the larger protein sequence. "
         "The Motif is identified by the positions in the substrate that have "

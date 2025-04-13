@@ -476,14 +476,11 @@ def plotBinnedSubstrates(binnedSubs, N, NSelect, enzymeName):
 
         return figBarGraph
 
-    # Convert to integer
-    NSelect = int(NSelect)
+
 
     # Evaluate: Counts
-    NBinSubs = 0
     xCount, yCount, xProb, yProb = [], [], [], []
-    for substrate, count in binnedSubs.items():
-        NBinSubs += 1
+    for NBinSubs, (substrate, count) in enumerate(binnedSubs.items()):
         xCount.append(str(substrate))
         yCount.append(count)
         xProb.append(str(substrate))
@@ -522,14 +519,23 @@ def plotBinnedSubstrates(binnedSubs, N, NSelect, enzymeName):
     figBinProb = plotBarGraph(xProb, yProb, yMaxProb, 'Probability', enzymeName)
 
     # Evaluate: Word cloud
-    figWords = plotWordCloud(binnedSubs, N, enzymeName)
+    figWords = plotWordCloud(binnedSubs, N, NSelect, enzymeName)
 
     return NBinSubs, figBinCounts, figBinProb, figWords
 
 
 
-def plotWordCloud(binnedSubs, N, enzymeName):
+def plotWordCloud(binnedSubs, N, NSelect, enzymeName):
     cmap = createCustomColorMap(colorType='Word Cloud')
+
+    # Select substrates
+    subsWC = {}
+    for index, (substrate, count) in enumerate(binnedSubs.items()):
+        print(index, substrate, count)
+        subsWC[substrate] = count
+        if index == NSelect:
+            break
+
 
     # Create word cloud
     wordcloud = (WordCloud(
@@ -540,7 +546,7 @@ def plotWordCloud(binnedSubs, N, enzymeName):
         max_font_size=100,  # Maximum font size
         scale=5,  # Increase scale for larger words
         colormap=cmap  # cool, hsv, plasma, _
-    ).generate_from_frequencies(binnedSubs))
+    ).generate_from_frequencies(subsWC))
 
 
     # Create a figure
