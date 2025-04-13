@@ -478,12 +478,12 @@ def plotBinnedSubstrates(binnedSubs, N, NSelect, enzymeName):
 
 
 
-    # Evaluate: Counts
-    xCount, yCount, xProb, yProb = [], [], [], []
+    # Evaluate: Motifs
+    motifs, yCount, yProb = [], [], []
     for NBinSubs, (substrate, count) in enumerate(binnedSubs.items()):
-        xCount.append(str(substrate))
+        NBinSubs += 1
+        motifs.append(str(substrate))
         yCount.append(count)
-        xProb.append(str(substrate))
         yProb.append(count / N)
         if NBinSubs == NSelect:
             break
@@ -515,8 +515,8 @@ def plotBinnedSubstrates(binnedSubs, N, NSelect, enzymeName):
 
 
     # Make: Figures
-    figBinCounts = plotBarGraph(xCount, yCount, yMaxCount, 'Counts', enzymeName)
-    figBinProb = plotBarGraph(xProb, yProb, yMaxProb, 'Probability', enzymeName)
+    figBinCounts = plotBarGraph(motifs, yCount, yMaxCount, 'Counts', enzymeName)
+    figBinProb = plotBarGraph(motifs, yProb, yMaxProb, 'Probability', enzymeName)
 
     # Evaluate: Word cloud
     figWords = plotWordCloud(binnedSubs, N, NSelect, enzymeName)
@@ -533,7 +533,7 @@ def plotWordCloud(binnedSubs, N, NSelect, enzymeName):
     for index, (substrate, count) in enumerate(binnedSubs.items()):
         print(index, substrate, count)
         subsWC[substrate] = count
-        if index == NSelect:
+        if index + 1 == NSelect:
             break
 
 

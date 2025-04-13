@@ -33,7 +33,7 @@ def run():
     enzymeName = request.form.get('enzymeName')
     entropyMin = request.form.get('entropyMin')
     NSelect = request.form.get('N')
-    NSelect = int(NSelect) - 1
+    NSelect = int(NSelect)
 
     # Evaluate: Data
     dataset = processData(substrates, entropyMin, NSelect, enzymeName, loadFile)
