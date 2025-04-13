@@ -694,7 +694,7 @@ def plotSuffixTree(motifs, N, NSelect, entropy, entropyMin, enzymeName):
     inFontSize = 16
     inScaleX = 2
     inScaleY = 1
-    inNodeCoordSpacer = 100  # Increase space between clusters
+    inNodeCoordSpacer = 100 # Increase space between clusters
 
 
     # Evaluate: Specificity
