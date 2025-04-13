@@ -115,28 +115,28 @@ def processData(substrates, entropyMin, NSelect, enzymeName, defaultSubs):
 
 def subsDefault():
     substrates = {
-        'VVKQRGTK': 19076,
-        'VIKQRVGA': 18383,
-        'LALQSACW': 17331,
+        'VVLQSGTK': 19076,
+        'VILQSVGA': 18383,
+        'LALQAACW': 17331,
         'LNLQGILD': 16201,
         'IYLQALMP': 16010,
 
         'TSLQARKS': 15449,
         'AFLQAHFT': 15175,
         'VTLQCTYS': 14330,
-        'VLLQAKQL': 14201,
+        'VLLQGKQL': 14201,
         'LVLQANPC': 14010,
 
         'IMLQGVIW': 13449,
         'AGLQASAH': 12175,
-        'KHLQSENE': 11330,
+        'IHLQSENE': 11330,
         'MVLQGDVN': 10201,
         'YGLQCNEV': 10010,
 
         'VCMQCQVQ': 9449,
-        'GELQSWHF': 9005,
+        'AELQSWHF': 7405,
         'VDMQCMWG': 7330,
-        'VWMQCSII': 7013,
+        'LWMQCSII': 7013,
         'VVMQCCSM': 6276,
 
         'VLIQCCPR': 1991,
@@ -616,13 +616,7 @@ class Trie:
 
 
 
-
-
 def evaluateSubtrees(trie, motifTrie):
-    print('============================= Evaluate Suffix Tree '
-          '==============================')
-    print(f'Datapoints: {len(motifTrie.keys())}')
-
     def subtreeTable(subtreeFreq):
         # Sort motifs by length
         sortedMotifs = sorted(subtreeFreq.keys(), key=len)
@@ -666,10 +660,10 @@ def evaluateSubtrees(trie, motifTrie):
         return motifTable
 
 
+    # Count: Total substrates
     motifsTotal = 0
     for motif, count in motifTrie.items():
         motifsTotal += count
-    print(f'Total Motifs: {motifsTotal:,}\n')
 
     # Evaluate: Partial sequence counts
     subtreeCount = {}
@@ -697,10 +691,10 @@ def evaluateSubtrees(trie, motifTrie):
 
 
 def plotSuffixTree(motifs, N, entropy, entropyMin, enzymeName):
-    inOffset = 2000
-    inNodeSizeMax = 2000
-    inNodeSizeMin = 1000
-    inFontSize = 10
+    inOffset = 100
+    inNodeSizeMax = 1700
+    inNodeSizeMin = 500
+    inFontSize = 16
     inScaleX = 2
     inScaleY = 1
 
@@ -739,7 +733,7 @@ def plotSuffixTree(motifs, N, entropy, entropyMin, enzymeName):
 
     # Extract the motifs
     motifTrie = {}
-    countsMotif = 0
+
     for motif, count in motifs.items():
         # Add the motif to the tree
         addMotif(motif, count)
@@ -775,6 +769,7 @@ def plotSuffixTree(motifs, N, entropy, entropyMin, enzymeName):
                              index=motifTable.index,
                              columns=motifTable.columns)
 
+    nodes = [inNodeSizeMax]
     def computeNodeSizes(motifTable, col, inNodeSizeMin, inNodeSizeMax):
         # Extract all RF values
         rfValues = []
@@ -806,86 +801,84 @@ def plotSuffixTree(motifs, N, entropy, entropyMin, enzymeName):
                     motif = motif[-2:]
 
                 nodeSizes.loc[index + 1, col] = f'{motif}: {nodeSize:.2f}'
+                nodes.append(nodeSize)
 
         return nodeSizes
 
 
     for col in motifTable.columns:
         nodeSizes = computeNodeSizes(motifTable, col, inNodeSizeMin, inNodeSizeMax)
-        print(nodeSizes)
-    sys.exit()
-
     print(f'Node Size:\n{nodeSizes}\n')
 
+    def addNodesToGraph(node, graph, scaleX, scaleY, offset=inOffset):
+        coords = {} # Stores node positions
+        nodeCountLevel = {} # Track all nodes per level
+        queue = [(node, None, '', 0)] # (node, parent, char, level)
 
-    def addNodesToGraph(node, graph, scaleX, scaleY, offset=inOffset,
-                        nodeSizesDF=None):
-        pos = {}
-        nodeSizes = []
-        nodeCountLevel = {}
-        xSpacing = scaleX * 1.0
-        ySpacing = scaleY * -1.0
-
-        # Track horizontal positions per level
-        levelWidths = {}
-
-        # Track node index separately
-        queue = [(node, None, '', '', 0,
-                  1)]  # (currentNode, parentID, char, fullMotif, level, index)
-
+        # Pass 1: Collect nodes for each level before positioning
         while queue:
-            nodeCurrent, parent, char, motifSoFar, level, index = queue.pop(0)
+            nodeCurrent, parent, char, level = queue.pop(0)
             nodeID = f"{char}-{level}-{id(nodeCurrent)}"
 
             if level not in nodeCountLevel:
                 nodeCountLevel[level] = []
-            nodeCountLevel[level].append(
-                (nodeCurrent, parent, char, nodeID, motifSoFar, index))
+            nodeCountLevel[level].append((nodeCurrent, parent, char, nodeID))
 
-            fullMotif = motifSoFar + char  # Build full motif sequence
-
-            # Assign node size from nodeSizesDF if available
-            nodeSize = inNodeSizeMin  # Default size
-            if nodeSizesDF is not None and level in nodeSizesDF.columns:
-                entry = nodeSizesDF.iloc[index - 1, level]  # Use the tracked index
-                if isinstance(entry, str) and ": " in entry:
-                    _, size = entry.split(": ")
-                    nodeSize = float(size)
-
-            graph.add_node(nodeID, label=char, size=nodeSize)
-            nodeSizes.append(nodeSize)
-            pos[nodeID] = (index * xSpacing, level * ySpacing)
-
-            if parent is not None:
-                graph.add_edge(parent, nodeID, arrowstyle='->')
-
-            # Track child nodes with incremented index
-            childIndex = 1
+            # Add children to the queue
             for child_char, nodeChild in nodeCurrent.children.items():
-                queue.append(
-                    (nodeChild, nodeID, child_char, fullMotif, level + 1, childIndex))
-                childIndex += 1  # Ensure unique index for each child
+                queue.append((nodeChild, nodeID, child_char, level + 1))
 
-        return pos, nodeSizes
+        # Pass 2: Assign positions level by level
+        for level, nodes in nodeCountLevel.items():
+            nodeNumber = len(nodes)
+            for i, (nodeCurrent, parent, char, nodeID) in enumerate(nodes):
+                if parent is None:
+                    coords[nodeID] = (0, 0)  # Root node position
+                else:
+                    parentX, parentY = coords[parent]
+
+                    # Calculate the x position
+                    if nodeNumber % 2 == 1:
+                        # Odd number of nodes: Center one on parentX
+                        posX = parentX + (i - nodeNumber // 2) * offset
+                    else:
+                        # Even number of nodes: Spread symmetrically
+                        posX = parentX + (i - (nodeNumber / 2 - 0.5)) * offset
+                    coords[nodeID] = (posX, parentY - scaleY)
+
+                # # Print: Node positions
+                # print(f'Level: {level}, Total Nodes at Level: {nodeNumber}\n'
+                #       f'Parent: {parent}\n'
+                #       f'    X: {parentX if parent else "N/A"}, '
+                #       f'Y: {parentY if parent else "N/A"}\n'
+                #       f'Node: {nodeID}\n'
+                #       f'    Pos: {coords[nodeID]}\n')
+
+                # Add node and edge to graph
+                graph.add_node(nodeID, label=char)
+                if parent is not None:
+                    # graph.add_edge(parent, nodeID)
+                    graph.add_edge(parent, nodeID, arrowstyle='->')
+
+        return coords
 
 
     # Build the graph
     graph = nx.DiGraph()
-    pos, nodeSizes = addNodesToGraph(trie.root, graph, scaleX=inScaleX,
-                                     scaleY=inScaleY, offset=inOffset,
-                                     nodeSizesDF=nodeSizes)
-    finalNodeSizes = [graph.nodes[node]["size"] for node in graph.nodes]
+    coords = addNodesToGraph(trie.root, graph, inScaleX, inScaleY, inOffset)
+
+    # finalNodeSizes = [graph.nodes[node]["size"] for node in graph.nodes]
+    # print(f'Final Node Size:\n{finalNodeSizes}\n\n')
 
     # Get node labels
     labels = {node: data['label'] for node, data in graph.nodes(data=True)}
 
-
     # Plot the data
     fig, ax = plt.subplots(figsize=figSize, dpi=dpi)
-    nx.draw(graph, pos, with_labels=True, labels=labels, node_size=finalNodeSizes,
-            node_color="#F18837", font_size=inFontSize, font_weight="bold",
+    nx.draw(graph, coords, with_labels=True, labels=labels, node_size=nodes,
+            node_color="#32D713", font_size=inFontSize, font_weight="bold",
             edge_color="#101010", ax=ax, arrows=False) # Draw graph
-    plt.title(f'{enzymeName}\nUnique Sequences: {countsMotif:,}',
+    plt.title(f'\n{enzymeName}\nUnique Sequences: {countsMotif:,}',
               fontsize=16, fontweight='bold')
     plt.tight_layout()
 
