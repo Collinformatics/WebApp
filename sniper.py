@@ -63,33 +63,32 @@ def home():
         marginB=12, marginButton=12,
         fontSize=16,
         borderRad=5,
+
         title="Specificity Network Identification via Positional Entropy based Refinement "
               "(SNIPER)",
         pg1="This program will take substrates for a given enzyme and identify the "
             "Motif, of the recognition sequence within the larger protein sequence. "
             "The Motif is identified by the positions in the substrate that have "
             "Entropy scores (∆S) that exceed a entropyMin value.",
-
+        pg2="∆S is evaluated at each position in the substrate sequence and is found by "
+            "the difference between the Maximum Entropy (S<sub>Max</sub>) and the "
+            "Shannon Entropy (S<sub>Shannon</sub>)",
+        equation="∆S = S<sub>Max</sub> - S<sub>Shannon</sub> = log<sub>2</sub>(20) - "
+                "∑(-prob<sub>AA</sub> * log<sub>2</sub>(prob<sub>AA</sub>))",
+        pg3="Once we have identified the Motif, we can bin the substrates to select the "
+            "only the recognition sequence. In other words, we remove the parts of the "
+            "substrate that are not important for an Enzyme-Substrate interaction.",
+        pg4="We can count the occurrences of each Motif, and plot this data in a Bar "
+            "Graph, and a Word Cloud. This allows us to display the observed "
+            "combinations of amino acids that fit into the enzymes active site.",
+        pg5="We can further evaluate the Motif by feeding the data into a Suffix Tree. "
+            "This analysis will select only the important residues within the motif, "
+            "and plot the amino acids as nodes with lines connecting the observed "
+            "combinations. This reveals the Specificity Network of your enzyme, as we "
+            "can visualize unique preferences for a given amino acid when another is "
+            "present in a preferred substrate."
     )
 
-# pg2="∆S is evaluated at each position in the substrate sequence and is found by "
-# "the difference between the Maximum Entropy (S<sub>Max</sub>) and the "
-# "Shannon Entropy (S<sub>Shannon</sub>)",
-# equation="∆S = S<sub>Max</sub> - S<sub>Shannon</sub> = log<sub>2</sub>(20) - "
-# "∑(-prob<sub>AA</sub> * log<sub>2</sub>(prob<sub>AA</sub>))",
-# pg3="Once we have identified the Motif, we can bin the substrates to select the only"
-# "the recognition sequence. In other words, we remove the parts of the substrate "
-# "that are not important for an Enzyme-Substrate interaction.",
-# pg4="We can count the occurrences of each Motif, and plot this data in a Bar Graph, "
-# "and a Word Cloud. This allows us to display the optimal combinations of amino "
-# "acids that fit into the enzymes active site."
-# "will plot the and use them as input for a Suffix Tree. This will plot the "
-# "preferred residues in descending order of Specificity, as determined by the "
-# "∆S values.",
-# pg5="We can further evaluate the Motif by feeding the data into a Suffix Tree. "
-# "This will reveal the Specificity Network of your enzyme, or the specific "
-# "connections between the preferences for a given amino acid when another is "
-# "present."
 
 if __name__ == '__main__':
     app.run(debug=True)

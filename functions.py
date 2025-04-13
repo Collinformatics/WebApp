@@ -137,7 +137,7 @@ def subsDefault():
         'LWMQCSII': 7013,
         'VVMQCCSM': 6276,
 
-        'VLIQCCPR': 1991,
+        'VLMQCCPR': 1991,
         'VVMQSGSM': 1754,
         'VVFQCHNR': 1576,
         'KRFQCKLR': 1234,
@@ -297,7 +297,7 @@ def plotEntropy(probAA, AA, enzymeName):
 
 def plotWeblogo(probAA, entropy, entropyMax, N, enzymeName):
     # AA Types: Aliphatic, Acidic, Basic, Hydroxyl, Amide, Aromatic, Sulfur
-    letterColors = ['#00D500','#CE0000','#08FFFF','#FF0088','#662695','#151515','#FFDD00']
+    letterColors = ['#00D500','#CE0000','#08FFFF','#FF0088','#662695','#151515','#FFEA00']
 
     # Set local parameters
     bigLettersOnTop = False
@@ -525,7 +525,7 @@ def plotBinnedSubstrates(binnedSubs, N, NSelect, entropy, entropyMin, enzymeName
     figWords = plotWordCloud(motifs, N, enzymeName)
 
     # Evaluate: Suffix tree
-    figTrie = plotSuffixTree(motifs, N, entropy, entropyMin, enzymeName)
+    figTrie = plotSuffixTree(motifs, N, NSelect, entropy, entropyMin, enzymeName)
 
 
     return NBinSubs, figBinCounts, figBinProb, figWords, figTrie
@@ -686,7 +686,7 @@ def evaluateSubtrees(trie, motifTrie):
 
 
 
-def plotSuffixTree(motifs, N, entropy, entropyMin, enzymeName):
+def plotSuffixTree(motifs, N, NSelect, entropy, entropyMin, enzymeName):
     # Figure Parameters: Suffix Tree
     inOffset = 100
     inNodeSizeMax = 1700
@@ -735,7 +735,7 @@ def plotSuffixTree(motifs, N, entropy, entropyMin, enzymeName):
         # Add the motif to the tree
         addMotif(motif, count)
         NUniqueTrieMotifs = len(motifTrie.keys())
-        if NUniqueTrieMotifs >= N:
+        if NUniqueTrieMotifs >= NSelect:
             break
     motifTrie = dict(sorted(motifTrie.items(), key=lambda item: item[1],
                             reverse=True))
@@ -791,7 +791,7 @@ def plotSuffixTree(motifs, N, entropy, entropyMin, enzymeName):
 
 
 
-    def addNodesToGraph(node, graph, scaleX, scaleY, offset=inOffset):
+    def addNodesToGraph(node, graph, scaleX, scaleY, offset, clusterSpacer):
         coords = {} # Stores node positions
         nodeCountLevel = {} # Track all nodes per level
         queue = [(node, None, '', 0)] # (node, parent, char, level)
@@ -819,8 +819,7 @@ def plotSuffixTree(motifs, N, entropy, entropyMin, enzymeName):
                     parentX, parentY = coords[parent]
 
                     # Calculate the x position
-                    clusterSpacing = offset + (level / inNodeCoordSpacer)
-
+                    clusterSpacing = offset + (level / clusterSpacer)
                     if nodeNumber % 2 == 1:
                         # Odd number of nodes: Center one on parentX
                         posX = parentX + (i - nodeNumber // 2) * clusterSpacing
@@ -846,7 +845,8 @@ def plotSuffixTree(motifs, N, entropy, entropyMin, enzymeName):
 
     # Build the graph
     graph = nx.DiGraph()
-    coords = addNodesToGraph(trie.root, graph, inScaleX, inScaleY, inOffset)
+    coords = addNodesToGraph(
+        trie.root, graph, inScaleX, inScaleY, inOffset, inNodeCoordSpacer)
 
     # Get node labels
     labels = {node: data['label'] for node, data in graph.nodes(data=True)}
@@ -856,7 +856,7 @@ def plotSuffixTree(motifs, N, entropy, entropyMin, enzymeName):
     nx.draw(graph, coords, with_labels=True, labels=labels, node_size=nodes,
             node_color="#23FF55", font_size=inFontSize, font_weight="bold",
             edge_color="#101010", ax=ax, arrows=False) # Draw graph
-    plt.title(f'\n{enzymeName}\nUnique Sequences: {NUniqueTrieMotifs:,}',
+    plt.title(f'\n{enzymeName}\nN = {N:,}\nUnique Sequences: {NUniqueTrieMotifs:,}',
               fontsize=16, fontweight='bold')
     plt.tight_layout()
 
