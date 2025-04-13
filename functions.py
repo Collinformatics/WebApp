@@ -698,8 +698,8 @@ def evaluateSubtrees(trie, motifTrie):
 
 def plotSuffixTree(motifs, N, entropy, entropyMin, enzymeName):
     inOffset = 2000
-    inNodeSizeMax = 800
-    inNodeSizeMin = 100
+    inNodeSizeMax = 2000
+    inNodeSizeMin = 1000
     inFontSize = 10
     inScaleX = 2
     inScaleY = 1
@@ -774,23 +774,54 @@ def plotSuffixTree(motifs, N, entropy, entropyMin, enzymeName):
     nodeSizes = pd.DataFrame('',
                              index=motifTable.index,
                              columns=motifTable.columns)
-    for col in motifTable.columns:
+
+    def computeNodeSizes(motifTable, col, inNodeSizeMin, inNodeSizeMax):
+        # Extract all RF values
+        rfValues = []
+        for entry in motifTable[col].dropna():
+            if ": " in entry:
+                _, rf = entry.split(": ")
+                rfValues.append(float(rf))
+
+        if not rfValues:
+            return nodeSizes  # return empty if no RFs
+
+        rfMin = min(rfValues)
+        rfMax = max(rfValues)
+
         for index, entry in enumerate(motifTable[col].dropna()):
             if ": " in entry:
                 motif, rf = entry.split(": ")
-                nodeSize = inNodeSizeMax - (inNodeSizeMax * (1 - float(rf)))
-                if nodeSize < 100:
-                    nodeSize = inNodeSizeMin
+                rf = float(rf)
+
+                # Normalize and scale size
+                if rfMax == rfMin:
+                    scaled = 1  # avoid division by zero
+                else:
+                    scaled = (rf - rfMin) / (rfMax - rfMin)
+
+                nodeSize = inNodeSizeMin + scaled * (inNodeSizeMax - inNodeSizeMin)
+
                 if len(motif) > 2:
                     motif = motif[-2:]
-                nodeSizes.loc[index+1, col] = f'{motif}: {nodeSize:.2f}'
+
+                nodeSizes.loc[index + 1, col] = f'{motif}: {nodeSize:.2f}'
+
+        return nodeSizes
+
+
+    for col in motifTable.columns:
+        nodeSizes = computeNodeSizes(motifTable, col, inNodeSizeMin, inNodeSizeMax)
+        print(nodeSizes)
+    sys.exit()
+
     print(f'Node Size:\n{nodeSizes}\n')
 
 
     def addNodesToGraph(node, graph, scaleX, scaleY, offset=inOffset,
                         nodeSizesDF=None):
         pos = {}
-        nodeSizes = {}
+        nodeSizes = []
         nodeCountLevel = {}
         xSpacing = scaleX * 1.0
         ySpacing = scaleY * -1.0
@@ -822,7 +853,8 @@ def plotSuffixTree(motifs, N, entropy, entropyMin, enzymeName):
                     nodeSize = float(size)
 
             graph.add_node(nodeID, label=char, size=nodeSize)
-            nodeSizes[nodeID] = nodeSize
+            nodeSizes.append(nodeSize)
+            pos[nodeID] = (index * xSpacing, level * ySpacing)
 
             if parent is not None:
                 graph.add_edge(parent, nodeID, arrowstyle='->')
