@@ -45,7 +45,8 @@ def run():
         "figLogo": dataset['pLogo'],
         "barCounts": dataset['barCounts'],
         "barProb": dataset['barProb'],
-        "figWords": dataset['words']
+        "figWords": dataset['words'],
+        "figTrie": dataset['trie']
     }
 
     return jsonify(result)

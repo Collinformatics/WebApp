@@ -90,7 +90,7 @@ def processData(substrates, entropyMin, NSelect, enzymeName, defaultSubs):
     figProb = plotProbabilities(probAA, N, enzymeName)
     entropy, entropyMax, figEntropy = plotEntropy(probAA, AA, enzymeName)
     figLogo = plotWeblogo(probAA, entropy, entropyMax, N, enzymeName)
-    NBinSubs, figBarCounts, figBarProb, figWords = binSubstrates(
+    NBinSubs, figBarCounts, figBarProb, figWords, figTrie = binSubstrates(
         substrates, entropy, entropyMin, NSelect, enzymeName)
 
     # Create dataset
@@ -103,6 +103,7 @@ def processData(substrates, entropyMin, NSelect, enzymeName, defaultSubs):
     dataset['barCounts'] = figBarCounts
     dataset['barProb'] = figBarProb
     dataset['words'] = figWords
+    dataset['trie'] = figTrie
 
     return dataset
 
@@ -427,12 +428,10 @@ def binSubstrates(substrates, entropy, entropyMin, NSelect, enzymeName):
     # Sort the dictionary by counts from highest to lowest
     binnedSubs = dict(sorted(binnedSubs.items(), key=lambda item: item[1], reverse=True))
 
-    # Plot: Binned substrates
-    NBinSubs, figBinCounts, figBinProb, figWords = plotBinnedSubstrates(
-        binnedSubs, countTotalSubs, NSelect, enzymeName)
+    # Plot: Binned substrates NBinSubs, figBinCounts, figBinProb, figWords, figTrie
+    output = plotBinnedSubstrates(binnedSubs, countTotalSubs, NSelect, enzymeName)
 
-
-    return NBinSubs, figBinCounts, figBinProb, figWords
+    return output
 
 
 
@@ -479,10 +478,12 @@ def plotBinnedSubstrates(binnedSubs, N, NSelect, enzymeName):
 
 
     # Evaluate: Motifs
-    motifs, yCount, yProb = [], [], []
+    motifs = {}
+    motifsList, yCount, yProb = [], [], []
     for NBinSubs, (substrate, count) in enumerate(binnedSubs.items()):
         NBinSubs += 1
-        motifs.append(str(substrate))
+        motifs[substrate] = count
+        motifsList.append(str(substrate))
         yCount.append(count)
         yProb.append(count / N)
         if NBinSubs == NSelect:
@@ -515,27 +516,29 @@ def plotBinnedSubstrates(binnedSubs, N, NSelect, enzymeName):
 
 
     # Make: Figures
-    figBinCounts = plotBarGraph(motifs, yCount, yMaxCount, 'Counts', enzymeName)
-    figBinProb = plotBarGraph(motifs, yProb, yMaxProb, 'Probability', enzymeName)
+    figBinCounts = plotBarGraph(motifsList, yCount, yMaxCount, 'Counts', enzymeName)
+    figBinProb = plotBarGraph(motifsList, yProb, yMaxProb, 'Probability', enzymeName)
 
     # Evaluate: Word cloud
-    figWords = plotWordCloud(binnedSubs, N, NSelect, enzymeName)
+    figWords = plotWordCloud(motifs, N, enzymeName)
 
-    return NBinSubs, figBinCounts, figBinProb, figWords
+    # Evaluate: Suffix tree
+    figTrie = plotSuffixTree(motifs, N, enzymeName)
+
+
+    return NBinSubs, figBinCounts, figBinProb, figWords, figTrie
 
 
 
-def plotWordCloud(binnedSubs, N, NSelect, enzymeName):
+def plotSuffixTree(motifs, N, enzymeName):
+    x = None
+
+    return None
+
+
+
+def plotWordCloud(motifs, N, enzymeName):
     cmap = createCustomColorMap(colorType='Word Cloud')
-
-    # Select substrates
-    subsWC = {}
-    for index, (substrate, count) in enumerate(binnedSubs.items()):
-        print(index, substrate, count)
-        subsWC[substrate] = count
-        if index + 1 == NSelect:
-            break
-
 
     # Create word cloud
     wordcloud = (WordCloud(
@@ -546,7 +549,7 @@ def plotWordCloud(binnedSubs, N, NSelect, enzymeName):
         max_font_size=100,  # Maximum font size
         scale=5,  # Increase scale for larger words
         colormap=cmap  # cool, hsv, plasma, _
-    ).generate_from_frequencies(subsWC))
+    ).generate_from_frequencies(motifs))
 
 
     # Create a figure
@@ -571,5 +574,3 @@ def plotWordCloud(binnedSubs, N, NSelect, enzymeName):
 
 
 
-def plotSuffixTree():
-    x = None
