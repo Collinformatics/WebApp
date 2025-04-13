@@ -1,11 +1,14 @@
 import base64
 import io
+import sys
+
 import logomaker
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap, Normalize
 from matplotlib.ticker import MaxNLocator
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+import networkx as nx
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -20,6 +23,7 @@ lineThickness = 1.5
 tickLength = 4
 figSize = (12, 9)
 figBorders = [0.882, 0.075, 0.05, 0.98]
+dpi = 300
 
 # Experimental parameters
 AA = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I',
@@ -152,7 +156,7 @@ def plotProbabilities(probAA, N, enzymeName):
 
 
     # Plot the heatmap with numbers centered inside the squares
-    fig, ax = plt.subplots(figsize=figSize, dpi=300)
+    fig, ax = plt.subplots(figsize=figSize, dpi=dpi)
     heatmap = sns.heatmap(probAA, annot=True, fmt='.3f', cmap=cMapCustom,
                           cbar=True, linewidths=lineThickness-1,
                           linecolor='black', square=False, center=None,
@@ -341,7 +345,7 @@ def plotWeblogo(probAA, entropy, entropyMax, N, enzymeName):
         heights.replace([np.inf, -np.inf], 0, inplace=True)
 
     # Plot the sequence motif
-    fig, ax = plt.subplots(figsize=figSize, dpi=300)
+    fig, ax = plt.subplots(figsize=figSize, dpi=dpi)
     motif = logomaker.Logo(heights.transpose(), ax=ax, color_scheme=colors,
                            width=0.95, stack_order=stackOrder)
     plt.title(f'\n{enzymeName}\nN = {int(N):,}\n',
@@ -429,20 +433,21 @@ def binSubstrates(substrates, entropy, entropyMin, NSelect, enzymeName):
     binnedSubs = dict(sorted(binnedSubs.items(), key=lambda item: item[1], reverse=True))
 
     # Plot: Binned substrates NBinSubs, figBinCounts, figBinProb, figWords, figTrie
-    output = plotBinnedSubstrates(binnedSubs, countTotalSubs, NSelect, enzymeName)
+    output = plotBinnedSubstrates(
+        binnedSubs, countTotalSubs, NSelect, entropy, entropyMin, enzymeName)
 
     return output
 
 
 
-def plotBinnedSubstrates(binnedSubs, N, NSelect, enzymeName):
+def plotBinnedSubstrates(binnedSubs, N, NSelect, entropy, entropyMin, enzymeName):
     def plotBarGraph(xValues, yValues, yMax, yLabel, title):
         barColor = '#23FF55'
         barWidth = 0.75
         yMin = 0
 
         # Plot the data
-        fig, ax = plt.subplots(figsize=figSize, dpi=300)
+        fig, ax = plt.subplots(figsize=figSize, dpi=dpi)
         bars = plt.bar(xValues, yValues, color=barColor, width=barWidth)
         plt.ylabel(yLabel, fontsize=labelSizeAxis)
         plt.title(f'{title}\nN = {N:,}', fontsize=labelSizeTitle, fontweight='bold')
@@ -474,7 +479,6 @@ def plotBinnedSubstrates(binnedSubs, N, NSelect, enzymeName):
         figBarGraph = base64.b64encode(imgStream.read()).decode('utf-8')
 
         return figBarGraph
-
 
 
     # Evaluate: Motifs
@@ -523,17 +527,10 @@ def plotBinnedSubstrates(binnedSubs, N, NSelect, enzymeName):
     figWords = plotWordCloud(motifs, N, enzymeName)
 
     # Evaluate: Suffix tree
-    figTrie = plotSuffixTree(motifs, N, enzymeName)
+    figTrie = plotSuffixTree(motifs, N, entropy, entropyMin, enzymeName)
 
 
     return NBinSubs, figBinCounts, figBinProb, figWords, figTrie
-
-
-
-def plotSuffixTree(motifs, N, enzymeName):
-    x = None
-
-    return None
 
 
 
@@ -553,7 +550,7 @@ def plotWordCloud(motifs, N, enzymeName):
 
 
     # Create a figure
-    fig, ax = plt.subplots(figsize=figSize, dpi=300)
+    fig, ax = plt.subplots(figsize=figSize, dpi=dpi)
     plt.title(f'\n{enzymeName}\nN = {N:,}\n',
               fontsize=labelSizeTitle-5, fontweight='bold')
     ax.imshow(wordcloud, interpolation='bilinear')
@@ -574,3 +571,297 @@ def plotWordCloud(motifs, N, enzymeName):
 
 
 
+
+
+class TrieNode:
+    # Create nodes
+    def __init__(self):
+        self.children = {}
+        self.endOfWord = False
+
+
+
+class Trie:
+    def __init__(self):
+        # Create the root as an empty node
+        self.root = TrieNode()
+
+    def insert(self, word: str) -> None:
+        # Add words to the trie
+        current =  self.root
+
+        for AA in word:
+            if AA not in current.children:
+                current.children[AA] = TrieNode()
+            current = current.children[AA]
+
+    def search(self, word):
+        # Search for a word in the trie
+        current = self.root
+
+        for AA in word:
+            if AA not in current.children:
+                return False
+            current = current.children[AA]
+        return True
+
+    def startsWith(self, prefix):
+        # Find the prefix in the trie
+        current = self.root
+
+        for AA in prefix:
+            if AA not in current.children:
+                return False
+        return True
+
+
+
+
+
+def evaluateSubtrees(trie, motifTrie):
+    print('============================= Evaluate Suffix Tree '
+          '==============================')
+    print(f'Datapoints: {len(motifTrie.keys())}')
+
+    def subtreeTable(subtreeFreq):
+        # Sort motifs by length
+        sortedMotifs = sorted(subtreeFreq.keys(), key=len)
+
+        # Organize motifs by their length and sort by frequency (highest first)
+        motifGroups = {}
+        for motif in sortedMotifs:
+            length = len(motif)
+            if length not in motifGroups:
+                motifGroups[length] = []
+            motifGroups[length].append((motif, subtreeFreq[motif]))
+
+        # Sort motifs in each length group by frequency (descending)
+        for length in motifGroups:
+            motifGroups[length].sort(key=lambda x: x[1], reverse=True)
+
+        # Convert motifs back to formatted strings
+        for length in motifGroups:
+            motifGroups[length] = [f"{motif}: {round(freq, 5)}"
+                                   for motif, freq in motifGroups[length]]
+
+        # Find the max number of motifs in any length group
+        maxRows = max(len(motifs) for motifs in motifGroups.values())
+
+        # Construct the table row by row
+        tableData = []
+        for i in range(maxRows):
+            row = []
+            for length in sorted(motifGroups.keys()):
+                motifs = motifGroups[length]
+                row.append(motifs[i] if i < len(
+                    motifs) else "")  # Fill missing values with empty strings
+            tableData.append(row)
+
+        # Convert to DataFrame
+        motifTable = pd.DataFrame(tableData,
+                                  index=range(1, len(motifTrie.keys()) + 1),
+                                  columns=[str(length)
+                                           for length in sorted(motifGroups.keys())])
+
+        return motifTable
+
+
+    motifsTotal = 0
+    for motif, count in motifTrie.items():
+        motifsTotal += count
+    print(f'Total Motifs: {motifsTotal:,}\n')
+
+    # Evaluate: Partial sequence counts
+    subtreeCount = {}
+    motifLength = len(next(iter(motifTrie)))
+    for index in range(motifLength):
+        for motif, count in motifTrie.items():
+            subSeq = motif[0:index+1]
+            if subSeq in subtreeCount.keys():
+                subtreeCount[subSeq] += count
+            else:
+                subtreeCount[subSeq] = count
+
+    # Evaluate: Partial sequence frequency
+    subtreeFreq = {}
+    for subSeq, count in subtreeCount.items():
+        subtreeFreq[subSeq] = count / motifsTotal
+    prevSeqLen = 1
+    for subSeq, count in subtreeFreq.items():
+        if len(subSeq) != prevSeqLen:
+            prevSeqLen = len(subSeq)
+    motifTable = subtreeTable(subtreeFreq)
+
+    return motifTable
+
+
+
+def plotSuffixTree(motifs, N, entropy, entropyMin, enzymeName):
+    inOffset = 2000
+    inNodeSizeMax = 800
+    inNodeSizeMin = 100
+    inFontSize = 10
+    inScaleX = 2
+    inScaleY = 1
+
+    # Evaluate: Specificity
+    motifPos = entropy.copy()
+    for indexPos, position in enumerate(entropy.index):
+        if entropy.loc[position, 'ΔS'] < entropyMin:
+            motifPos.drop(position, inplace=True)
+
+    # Sort the frame
+    motifPos = motifPos.sort_values(by='ΔS', ascending=False).copy()
+
+    # Initialize Trie
+    trie = Trie()
+
+    # Find motif positions based on entropy threshold
+    indexPos = []
+    for index in motifPos.index:
+        posEntropy = motifPos.loc[index, 'ΔS']
+        if posEntropy >= entropyMin:
+            indexPos.append(int(index.replace('R', '')) - 1)
+
+
+
+    def addMotif(motif, count):
+        # Extract important AAs from the motif
+        motif = ''.join(motif[index] for index in indexPos)
+
+        # Add motif to the trie
+        if motif in motifTrie.keys():
+            motifTrie[motif] += count
+        else:
+            motifTrie[motif] = count
+            trie.insert(motif)
+
+
+    # Extract the motifs
+    motifTrie = {}
+    countsMotif = 0
+    for motif, count in motifs.items():
+        # Add the motif to the tree
+        addMotif(motif, count)
+        countsMotif = len(motifTrie.keys())
+        if countsMotif >= N:
+            break
+
+    # # Extract the motifs
+    # motifCount = 0
+    # for substrate, count in substrates.items():
+    #     motif = substrate[indexStart:indexEnd + 1]
+    #     if motif in motifs:
+    #         motifs[motif] += count
+    #     else:
+    #         motifs[motif] = count
+    #         motifCount += 1
+    #
+    #     # Add the motif to the tree
+    #     addMotif(motif, count)
+    #     countsMotif = len(motifTrie.keys())
+    #     if countsMotif >= N:
+    #         break
+
+
+    motifTrie = dict(sorted(motifTrie.items(), key=lambda item: item[1],
+                            reverse=True))
+
+    # Calculate: RF
+    motifTable = evaluateSubtrees(trie=trie, motifTrie=motifTrie)
+
+    # Calculate: Node size
+    nodeSizes = pd.DataFrame('',
+                             index=motifTable.index,
+                             columns=motifTable.columns)
+    for col in motifTable.columns:
+        for index, entry in enumerate(motifTable[col].dropna()):
+            if ": " in entry:
+                motif, rf = entry.split(": ")
+                nodeSize = inNodeSizeMax - (inNodeSizeMax * (1 - float(rf)))
+                if nodeSize < 100:
+                    nodeSize = inNodeSizeMin
+                if len(motif) > 2:
+                    motif = motif[-2:]
+                nodeSizes.loc[index+1, col] = f'{motif}: {nodeSize:.2f}'
+    print(f'Node Size:\n{nodeSizes}\n')
+
+
+    def addNodesToGraph(node, graph, scaleX, scaleY, offset=inOffset,
+                        nodeSizesDF=None):
+        pos = {}
+        nodeSizes = {}
+        nodeCountLevel = {}
+        xSpacing = scaleX * 1.0
+        ySpacing = scaleY * -1.0
+
+        # Track horizontal positions per level
+        levelWidths = {}
+
+        # Track node index separately
+        queue = [(node, None, '', '', 0,
+                  1)]  # (currentNode, parentID, char, fullMotif, level, index)
+
+        while queue:
+            nodeCurrent, parent, char, motifSoFar, level, index = queue.pop(0)
+            nodeID = f"{char}-{level}-{id(nodeCurrent)}"
+
+            if level not in nodeCountLevel:
+                nodeCountLevel[level] = []
+            nodeCountLevel[level].append(
+                (nodeCurrent, parent, char, nodeID, motifSoFar, index))
+
+            fullMotif = motifSoFar + char  # Build full motif sequence
+
+            # Assign node size from nodeSizesDF if available
+            nodeSize = inNodeSizeMin  # Default size
+            if nodeSizesDF is not None and level in nodeSizesDF.columns:
+                entry = nodeSizesDF.iloc[index - 1, level]  # Use the tracked index
+                if isinstance(entry, str) and ": " in entry:
+                    _, size = entry.split(": ")
+                    nodeSize = float(size)
+
+            graph.add_node(nodeID, label=char, size=nodeSize)
+            nodeSizes[nodeID] = nodeSize
+
+            if parent is not None:
+                graph.add_edge(parent, nodeID, arrowstyle='->')
+
+            # Track child nodes with incremented index
+            childIndex = 1
+            for child_char, nodeChild in nodeCurrent.children.items():
+                queue.append(
+                    (nodeChild, nodeID, child_char, fullMotif, level + 1, childIndex))
+                childIndex += 1  # Ensure unique index for each child
+
+        return pos, nodeSizes
+
+
+    # Build the graph
+    graph = nx.DiGraph()
+    pos, nodeSizes = addNodesToGraph(trie.root, graph, scaleX=inScaleX,
+                                     scaleY=inScaleY, offset=inOffset,
+                                     nodeSizesDF=nodeSizes)
+    finalNodeSizes = [graph.nodes[node]["size"] for node in graph.nodes]
+
+    # Get node labels
+    labels = {node: data['label'] for node, data in graph.nodes(data=True)}
+
+
+    # Plot the data
+    fig, ax = plt.subplots(figsize=figSize, dpi=dpi)
+    nx.draw(graph, pos, with_labels=True, labels=labels, node_size=finalNodeSizes,
+            node_color="#F18837", font_size=inFontSize, font_weight="bold",
+            edge_color="#101010", ax=ax, arrows=False) # Draw graph
+    plt.title(f'{enzymeName}\nUnique Sequences: {countsMotif:,}',
+              fontsize=16, fontweight='bold')
+    plt.tight_layout()
+
+    # Convert figure to base64
+    imgStream = io.BytesIO()
+    fig.savefig(imgStream, format='png', bbox_inches='tight', pad_inches=0.1)
+    plt.close(fig)  # Close figure to free memory
+    imgStream.seek(0)
+    figTrie = base64.b64encode(imgStream.read()).decode('utf-8')
+
+    return figTrie
