@@ -158,7 +158,7 @@
         function evaluateForm(event) {
             event?.preventDefault(); // Prevent any default form action
 
-            const enzymeName = document.getElementById('enzymeName').value;
+            let enzymeName = document.getElementById('enzymeName').value;
             const entropyMin = document.getElementById('entropyMin').value;
             const N = document.getElementById('N').value;
             const textFileInput = document.querySelector('input[name="textFile"]');
@@ -168,6 +168,11 @@
                 alert("Please fill out all required fields.");
                 return;
             }
+
+            if (enzymeName === 'Name') {
+                enzymeName = 'Template Enzyme';
+            }
+
             const formData = new FormData();
             formData.append('enzymeName', enzymeName);
             formData.append('entropyMin', entropyMin);
@@ -292,6 +297,7 @@
             <p>{{ pg3|safe }}</p>
             <p>{{ pg4|safe }}</p>
             <p>{{ pg5|safe }}</p>
+            <p>{{ pg6|safe }}</p>
         </div>
         <div class="container">
             <div class="container-input">
@@ -305,19 +311,19 @@
                 <div class="div-header">Experiment Parameters:</div>
                 <div class="form-group">
                     <label for="enzymeName">Enzyme Name:</label>
-                    <input type="text" id="enzymeName" name="enzymeName" required value="Your Name">
+                    <input type="text" id="enzymeName" name="enzymeName" required value="Name">
                 </div>
 
                 <div class="form-group">
                     <label for="entropyMin">Minimum Entropy Score:</label>
-                    <input type="number" id="entropyMin" name="entropyMin" step="0.1" value="0.6" required>
+                    <input type="number" id="entropyMin" name="entropyMin" step="0.05" value="0.6" required>
                 </div>
 
                 <div class="form-group">
                     <label for="N">Select & Bin "N" Substrates:</label>
                     <input type="number" id="N" name="N" value="25" required>
                 </div>
-                    <button type="button" onclick="evaluateForm()">Submit</button>
+                    <button type="button" onclick="evaluateForm()">Evaluate</button>
                 </form>
         </div>
     </body>

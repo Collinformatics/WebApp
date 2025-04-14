@@ -27,10 +27,9 @@ def run():
 
 
     # Get other data from the form
-    enzymeName = request.form.get('enzymeName')
+    enzymeName = request.form.get('enzymeName') if loadFile else 'Template Enzyme'
     entropyMin = request.form.get('entropyMin')
-    NSelect = request.form.get('N')
-    NSelect = int(NSelect)
+    NSelect = int(request.form.get('N'))
 
     # Evaluate: Data
     dataset = processData(substrates, entropyMin, NSelect, enzymeName, loadFile)
@@ -86,7 +85,9 @@ def home():
             "and plot the amino acids as nodes with lines connecting the observed "
             "combinations. This reveals the Specificity Network of your enzyme, as we "
             "can visualize unique preferences for a given amino acid when another is "
-            "present in a preferred substrate."
+            "present in a preferred substrate.",
+        pg6="To visualize the analysis on a template dataset, run the script without "
+            "uploading a Text file."
     )
 
 
