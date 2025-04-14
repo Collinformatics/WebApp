@@ -20,10 +20,11 @@ def run():
             # Split the content by lines to get each substrate sequence
             substrates = substrate.splitlines()
         else:
+            # Use template substrates
             substrates = subsDefault()
 
     except Exception as e:
-        return jsonify({"error": f"Error A: {str(e)}"}), 400
+        return jsonify({"error": f"Error: {str(e)}"}), 400
 
 
     # Get other data from the form
