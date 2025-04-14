@@ -231,14 +231,14 @@
                     </div>
                     <div class=container-fig>
                         <div class="div-header">
-                                pLogo:
+                                Weblogo:
                             </div>
                             <div class=container-figDescription>
                                 <p>Letter Size = ΔS<sub>Pos</sub> ×
                                     prob<sub>AA@Pos</sub></p>
                              </div>
                         <p><img src="data:image/png;base64,${data.figLogo}"
-                            alt="pLogo" style="max-width: 100%;" /></p>
+                            alt="Weblogo" style="max-width: 100%;" /></p>
                     </div>
                     <div class=container-fig>
                         <div class="div-header">
@@ -297,14 +297,38 @@
             <p>{{ pg3|safe }}</p>
             <p>{{ pg4|safe }}</p>
             <p>{{ pg5|safe }}</p>
-            <p>{{ pg6|safe }}</p>
         </div>
+        <div class="container-description">
+            <div class="div-header">Additional:</div>
+            <p>Uploaded files must be formatted as .txt</p>
+            <p>Input data must be a list protein sequences that are of the same length with only one sequence per line</p>
+            <p>For optimal analysis of your data, it is recommended to apply a filter to your input data that will only select substrates with a preferred residue(s) at a single position in the substrate</p>
+            <p>To visualize the analysis on a template dataset, run the script without uploading a Text file.</p>
+            <p>{{ pg6|safe }}
+        </div>
+
+        <div class="container-description">
+            <div class="div-header">Citations:</div>
+
+            <p>
+                <a href="https://genome.cshlp.org/content/14/6/1188.full" target="_blank">
+                    Crooks, G. E., et al. Genome Research. (2004)
+                </a>
+            </p>
+
+            <p>
+                <a href="https://www.cambridge.org/core/journals/mathematical-structures-in-computer-science/article/shannon-entropy-a-rigorous-notion-at-the-crossroads-between-probability-information-theory-dynamical-systems-and-statistical-physics/4A4B7B069BCF64CC595635D865317C83" target="_blank">
+                    Lesne, Annick.  Mathematical Structures in Computer Science. (2014)
+                </a>
+            </p>
+        </div>
+
         <div class="container">
             <div class="container-input">
                 <form action="/run" method="POST" enctype="multipart/form-data" class="input-form">
                 <div class="div-header">Upload Text File:</div>
                 <div class="form-group">
-                    <label for="textFile">Uploaded files must be formatted as .txt</label>
+                    <label for="textFile"></label>
                     <input type="file" id="textFile" name="textFile" accept=".txt" class="input-form">
                 </div>
 

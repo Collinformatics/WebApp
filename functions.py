@@ -702,6 +702,7 @@ def plotSuffixTree(motifs, N, NSelect, entropy, entropyMin, enzymeName):
     for indexPos, position in enumerate(entropy.index):
         if entropy.loc[position, 'ΔS'] < entropyMin:
             motifPos.drop(position, inplace=True)
+    print(f'{next(iter(motifs.keys()))}: {len(next(iter(motifs.keys())))}\n')
 
     # Sort the frame
     motifPos = motifPos.sort_values(by='ΔS', ascending=False).copy()
@@ -711,10 +712,15 @@ def plotSuffixTree(motifs, N, NSelect, entropy, entropyMin, enzymeName):
 
     # Find motif positions based on entropy threshold
     indexPos = []
+    levelLabels = ['']
     for index in motifPos.index:
         posEntropy = motifPos.loc[index, 'ΔS']
         if posEntropy >= entropyMin:
+            levelLabels.append(index)
             indexPos.append(int(index.replace('R', '')) - 1)
+    print(f'Max: {max(indexPos)}, Sub: {len(next(iter(motifs.keys())))}')
+    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    print(f'Levels: {levelLabels}\nIndex: {indexPos}')
 
 
     def addMotif(motif, count):
@@ -835,7 +841,7 @@ def plotSuffixTree(motifs, N, NSelect, entropy, entropyMin, enzymeName):
                     # graph.add_edge(parent, nodeID)
                     graph.add_edge(parent, nodeID, arrowstyle='->')
 
-        return coords
+        return coords, sorted(nodeCountLevel.keys(), reverse=True)
 
 
 
@@ -845,7 +851,7 @@ def plotSuffixTree(motifs, N, NSelect, entropy, entropyMin, enzymeName):
 
     # Build the graph
     graph = nx.DiGraph()
-    coords = addNodesToGraph(
+    coords, levels = addNodesToGraph(
         trie.root, graph, inScaleX, inScaleY, inOffset, inNodeCoordSpacer)
 
     # Get node labels
@@ -859,6 +865,13 @@ def plotSuffixTree(motifs, N, NSelect, entropy, entropyMin, enzymeName):
     plt.title(f'\n{enzymeName}\nN = {N:,}\nUnique Sequences: {NUniqueTrieMotifs:,}',
               fontsize=16, fontweight='bold')
     plt.tight_layout()
+
+    # Label each level
+    xMin, xMax = ax.get_xlim()
+    for index in range(len(levels)):
+        label = levelLabels[index]
+        ax.text(xMin, -index, label, ha='right', va='center', fontsize=inFontSize,
+                fontweight='bold', color='black', transform=ax.transData)
 
     # Convert figure to base64
     imgStream = io.BytesIO()
