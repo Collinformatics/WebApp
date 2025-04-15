@@ -169,10 +169,6 @@
                 return;
             }
 
-            if (enzymeName === 'Name') {
-                enzymeName = 'Template Enzyme';
-            }
-
             const formData = new FormData();
             formData.append('enzymeName', enzymeName);
             formData.append('entropyMin', entropyMin);
@@ -204,78 +200,95 @@
                     margin: "{{ spacer }}px auto",
                     marginBottom: "{{ marginB }}px"
                 });
-                newDiv.innerHTML = `
-                    <div class="div-header">Results:</div>
-                    <div class=container-params>
-                        <p><strong>Enzyme:</strong> ${enzymeName}</p>
-                        <p><strong>Min Entropy:</strong> ${entropyMin}</p>
-                        <p><strong>Selecting Substrates:</strong> ${data.NBinSubs}</p>
-                        <p><strong>Unique Motifs Obtained:</strong> ${data.NBinSubs}</p>
-                    </div>
-                    <div class=container-fig>
-                        <div class="div-header">
-                            Amino Acid Probability Distribution:
-                        </div>
-                        <p><img src="data:image/png;base64,${data.figProb}"
-                            alt="Probability Plot" style="max-width: 100%;" /></p>
-                    </div>
-                    <div class=container-fig>
-                        <div class="div-header">
-                            Positional Entropy (ΔS):
-                        </div>
-                         <div class=container-figDescription>
-                            <p>{{ equation|safe }}</p>
-                         </div>
-                        <p><img src="data:image/png;base64,${data.figEntropy}"
-                            alt="Entropy Plot" style="max-width: 100%;" /></p>
-                    </div>
-                    <div class=container-fig>
-                        <div class="div-header">
-                                Weblogo:
-                            </div>
-                            <div class=container-figDescription>
-                                <p>Letter Size = ΔS<sub>Pos</sub> ×
-                                    prob<sub>AA@Pos</sub></p>
-                             </div>
-                        <p><img src="data:image/png;base64,${data.figLogo}"
-                            alt="Weblogo" style="max-width: 100%;" /></p>
-                    </div>
-                    <div class=container-fig>
-                        <div class="div-header">
-                                Substrate Motif:
-                        </div>
 
-                        <div class=container-figDescription>
-                            <p>Motif Counts:</p>
-                        </div>
-                        <p><img src="data:image/png;base64,${data.barCounts}"
-                            alt="Bar Graph: Motif Counts"
-                            style="max-width: 100%;" /></p>
+
+            // Your conditional content
+            let noteProb = '', noteEntropy = '', noteWeblogo = '', noteMotifCounts = '', noteMotifProb = '', noteWords = '', noteTrie = '';
+            if (data.enzyme === "Template Enzyme") {
+                noteProb = `<p>First the amino acid probabilities are evaluated. This allows for the visualization of how the enzymes specificity changes the probability distributions.</p>`;
+                noteEntropy = `<p><\p>`;
+                noteWeblogo = `<p><\p>`;
+                noteMotifCounts = `<p><\p>`;
+                noteMotifProb = `<p><\p>`;
+                noteWords = `<p><\p>`;
+                noteTrie = `<p><\p>`;
+                note = `<p><\p>`;
+            }
+
+            // Now insert into the HTML
+            newDiv.innerHTML = `
+                <div class="div-header">Results:</div>
+                <div class="container-params">
+                    <p><strong>Enzyme:</strong> ${enzymeName}</p>
+                    <p><strong>Min Entropy:</strong> ${entropyMin}</p>
+                    <p><strong>Selecting Substrates:</strong> ${data.NBinSubs}</p>
+                    <p><strong>Unique Motifs Obtained:</strong> ${data.NBinSubs}</p>
+                </div>
+                <div class="container-fig">
+                    <div class="div-header">
+                        Amino Acid Probability Distribution:
                     </div>
-                    <div class=container-fig>
-                        <div class=container-figDescription>
-                            <p>Motif Probability:</p>
-                        </div>
-                        <p><img src="data:image/png;base64,${data.barProb}"
-                            alt="Bar Graph: Motif Probability"
-                            style="max-width: 100%;" /></p>
+                    ${noteProb}
+                    <p><img src="data:image/png;base64,${data.figProb}"
+                        alt="Probability Plot" style="max-width: 100%;" /></p>
+                </div>
+
+                <div class="container-fig">
+                    <div class="div-header">
+                        Positional Entropy (ΔS):
                     </div>
-                    <div class=container-fig>
-                        <div class=container-figDescription>
-                            <p>Word Cloud:</p>
-                        </div>
-                        <p><img src="data:image/png;base64,${data.figWords}"
-                            alt="Words" style="max-width: 100%;" /></p>
+                    <div class="container-figDescription">
+                        <p>{{ equation|safe }}</p>
                     </div>
-                    <div class=container-fig>
-                        <div class=container-figDescription>
-                            <p>Suffix Tree:</p>
-                        </div>
-                        <p><img src="data:image/png;base64,${data.figTrie}"
-                            alt="Trie" style="max-width: 100%;" /></p>
+                    <p><img src="data:image/png;base64,${data.figEntropy}"
+                        alt="Entropy Plot" style="max-width: 100%;" /></p>
+                </div>
+                <div class="container-fig">
+                    <div class="div-header">
+                        Weblogo:
                     </div>
-                `;
-                document.body.appendChild(newDiv);
+                    <div class="container-figDescription">
+                        <p>Letter Size = ΔS<sub>Pos</sub> × prob<sub>AA@Pos</sub></p>
+                    </div>
+                    <p><img src="data:image/png;base64,${data.figLogo}"
+                        alt="Weblogo" style="max-width: 100%;" /></p>
+                </div>
+                <div class="container-fig">
+                    <div class="div-header">
+                        Substrate Motif:
+                    </div>
+                    <div class="container-figDescription">
+                        <p>Motif Counts:</p>
+                    </div>
+                    <p><img src="data:image/png;base64,${data.barCounts}"
+                        alt="Bar Graph: Motif Counts"
+                        style="max-width: 100%;" /></p>
+                </div>
+                <div class="container-fig">
+                    <div class="container-figDescription">
+                        <p>Motif Probability:</p>
+                    </div>
+                    <p><img src="data:image/png;base64,${data.barProb}"
+                        alt="Bar Graph: Motif Probability"
+                        style="max-width: 100%;" /></p>
+                </div>
+                <div class="container-fig">
+                    <div class="container-figDescription">
+                        <p>Word Cloud:</p>
+                    </div>
+                    <p><img src="data:image/png;base64,${data.figWords}"
+                        alt="Words" style="max-width: 100%;" /></p>
+                </div>
+                <div class="container-fig">
+                    <div class="container-figDescription">
+                        <p>Suffix Tree:</p>
+                    </div>
+                    <p><img src="data:image/png;base64,${data.figTrie}"
+                        alt="Trie" style="max-width: 100%;" /></p>
+                </div>
+            `;
+
+            document.body.appendChild(newDiv);
             })
             .catch(error => {
                 console.error('Error:', error);
