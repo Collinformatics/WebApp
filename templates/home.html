@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>SNIPER</title>
+        <title>MOCHA</title>
         <style>
             body {
                 background-color: {{ black }};
@@ -203,13 +203,22 @@
 
 
             // Figure Descriptions
-            noteProb = "First the amino acid probabilities are evaluated. This allows for the visualization of how the enzymes specificity changes the probability distributions.";
+            noteProb = "First the amino acid probabilities are evaluated. This allows for the visualization of how the enzyme's specificity changes the probability distributions.";
             noteEntropy = "{{ equation|safe }}<br><br>The probability distributions are used to determine which positions in the sequence are important for the substrate recognition.<br><br>A high ∆S value indicates a high degree of specificity at that position.";
+            Note: Mention the ranking of most to least specific positions
+
             noteWeblogo = "Letter Size = ΔS<sub>Pos</sub> × prob<sub>AA@Pos</sub><br><br>By multiplying the probability of a given residue at a given position by the ∆S value of that position we can obtain a Weblogo.<br><br>In this figure, the more preferred a given residue is, the larger it will be.<br>Additionally, the taller the stack of amino acids is, the more selective the enzyme is for what residues can be found at that position.";
+            Cite ^ (superscript number)
             noteMotifCounts = "The Positional Entropy is used to extract the Motif from the larger substrate sequence.<br><br>Essentially we remove the non-specific parts of the substrate who's ∆S values are below the threshold value.<br><br>By counting the number of occurrences of each Motif in the dataset, we obtain this figure.";
             noteMotifProb = "This figure uses the Motif counts to determine the probability of finding each Motif in the dataset.";
             noteWords = "The Word Cloud is another way to visualize the preferred Motif. Larger words correspond to Motifs with a high number of counts.";
-            noteTrie = "The Suffix Tree starts with the root node, and ranks the most to least specific positions within the Motif for the positions with ∆S values that are above the threshold value.<br><br>Each level includes the residues that are found at the corresponding substrate position, and the size of the node is proportional to the probability of finding the residue within the set of selected Motifs.";
+            noteTrie = "The Suffix Tree starts with the root node, and ranks the most to least specific positions within the Motif for the positions with ∆S values that are above the threshold value.
+            In this case that means the most specific position in the motif is at R4, followed by R3, then R5 and finally R1. In other words the levels are not going to be in sequential order.
+            
+            <br><br>Each level includes the residues that are found at the corresponding substrate position, and the size of the node is proportional to the probability of finding the residue within the set of selected Motifs.";
+            ^ threshod -> Min dS
+
+
 
             // Now insert into the HTML
             newDiv.innerHTML = `
@@ -306,7 +315,7 @@
         }
     </script>
     <body>
-        <h1>{{ title|safe }}</h1>
+        <h1>Motif Orientation and Characterization for High-throughput Assays (MOCHA)</h1>
         <div class="container-description">
             <div class="div-header">Description:</div>
             <p>{{ pg1|safe }}</p>

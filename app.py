@@ -68,8 +68,6 @@ def home():
         fontSize=16,
         borderRad=5,
 
-        title="Specificity Network Identification via Positional Entropy based Refinement "
-              "(SNIPER)",
         pg1="For enzymes that "
             " This program will take substrates for a given enzyme and identify the "
             "Motif, of the recognition sequence within the larger protein sequence. "
