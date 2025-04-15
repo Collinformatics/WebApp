@@ -202,18 +202,14 @@
                 });
 
 
-            // Your conditional content
-            let noteProb = '', noteEntropy = '', noteWeblogo = '', noteMotifCounts = '', noteMotifProb = '', noteWords = '', noteTrie = '';
-            if (data.enzyme === "Template Enzyme") {
-                noteProb = `<p>First the amino acid probabilities are evaluated. This allows for the visualization of how the enzymes specificity changes the probability distributions.</p>`;
-                noteEntropy = `<p><\p>`;
-                noteWeblogo = `<p><\p>`;
-                noteMotifCounts = `<p><\p>`;
-                noteMotifProb = `<p><\p>`;
-                noteWords = `<p><\p>`;
-                noteTrie = `<p><\p>`;
-                note = `<p><\p>`;
-            }
+            // Figure Descriptions
+            noteProb = "First the amino acid probabilities are evaluated. This allows for the visualization of how the enzymes specificity changes the probability distributions.";
+            noteEntropy = "{{ equation|safe }}<br><br>The probability distributions are used to determine which positions in the sequence are important for the substrate recognition.<br><br>A high ∆S value indicates a high degree of specificity at that position.";
+            noteWeblogo = "Letter Size = ΔS<sub>Pos</sub> × prob<sub>AA@Pos</sub><br><br>By multiplying the probability of a given residue at a given position by the ∆S value of that position we can obtain a Weblogo.<br><br>In this figure, the more preferred a given residue is, the larger it will be.<br>Additionally, the taller the stack of amino acids is, the more selective the enzyme is for what residues can be found at that position.";
+            noteMotifCounts = "The Positional Entropy is used to extract the Motif from the larger substrate sequence.<br><br>Essentially we remove the non-specific parts of the substrate who's ∆S values are below the threshold value.<br><br>By counting the number of occurrences of each Motif in the dataset, we obtain this figure.";
+            noteMotifProb = "This figure uses the Motif counts to determine the probability of finding each Motif in the dataset.";
+            noteWords = "The Word Cloud is another way to visualize the preferred Motif. Larger words correspond to Motifs with a high number of counts.";
+            noteTrie = "The Suffix Tree starts with the root node, and ranks the most to least specific positions within the Motif for the positions with ∆S values that are above the threshold value.<br><br>Each level includes the residues that are found at the corresponding substrate position, and the size of the node is proportional to the probability of finding the residue within the set of selected Motifs.";
 
             // Now insert into the HTML
             newDiv.innerHTML = `
@@ -228,7 +224,7 @@
                     <div class="div-header">
                         Amino Acid Probability Distribution:
                     </div>
-                    ${noteProb}
+                    <p>${noteProb}</p>
                     <p><img src="data:image/png;base64,${data.figProb}"
                         alt="Probability Plot" style="max-width: 100%;" /></p>
                 </div>
@@ -238,7 +234,7 @@
                         Positional Entropy (ΔS):
                     </div>
                     <div class="container-figDescription">
-                        <p>{{ equation|safe }}</p>
+                        <p>${noteEntropy}</p>
                     </div>
                     <p><img src="data:image/png;base64,${data.figEntropy}"
                         alt="Entropy Plot" style="max-width: 100%;" /></p>
@@ -248,40 +244,49 @@
                         Weblogo:
                     </div>
                     <div class="container-figDescription">
-                        <p>Letter Size = ΔS<sub>Pos</sub> × prob<sub>AA@Pos</sub></p>
+                        <p>${noteWeblogo}</p>
                     </div>
                     <p><img src="data:image/png;base64,${data.figLogo}"
                         alt="Weblogo" style="max-width: 100%;" /></p>
                 </div>
                 <div class="container-fig">
                     <div class="div-header">
-                        Substrate Motif:
+                        Motif Counts:
                     </div>
                     <div class="container-figDescription">
-                        <p>Motif Counts:</p>
+                        <p>${noteMotifCounts}</p>
                     </div>
                     <p><img src="data:image/png;base64,${data.barCounts}"
                         alt="Bar Graph: Motif Counts"
                         style="max-width: 100%;" /></p>
                 </div>
                 <div class="container-fig">
+                    <div class="div-header">
+                        Motif Probability:
+                    </div>
                     <div class="container-figDescription">
-                        <p>Motif Probability:</p>
+                        <p>${noteMotifProb}</p>
                     </div>
                     <p><img src="data:image/png;base64,${data.barProb}"
                         alt="Bar Graph: Motif Probability"
                         style="max-width: 100%;" /></p>
                 </div>
                 <div class="container-fig">
+                    <div class="div-header">
+                        Word Cloud:
+                    </div>
                     <div class="container-figDescription">
-                        <p>Word Cloud:</p>
+                        <p>${noteWords}</p>
                     </div>
                     <p><img src="data:image/png;base64,${data.figWords}"
                         alt="Words" style="max-width: 100%;" /></p>
                 </div>
                 <div class="container-fig">
+                    <div class="div-header">
+                        Suffix Tree:
+                    </div>
                     <div class="container-figDescription">
-                        <p>Suffix Tree:</p>
+                        <p>${noteTrie}</p>
                     </div>
                     <p><img src="data:image/png;base64,${data.figTrie}"
                         alt="Trie" style="max-width: 100%;" /></p>
