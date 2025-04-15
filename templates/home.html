@@ -83,6 +83,7 @@
                 background-color: {{ grey }};
                 font-size: 20px;
                 text-align: center;
+                max-width: 900px;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
@@ -195,7 +196,6 @@
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
-                    padding: "{{ padTB }}px {{ padSide }}px {{ padTB }}px {{ padSide }}px",
                     padding: "{{ padTB }}px {{ padSide }}px {{ padTB }}px {{ padSide }}px",
                     margin: "{{ spacer }}px auto",
                     marginBottom: "{{ marginB }}px"
@@ -320,8 +320,8 @@
         <div class="container-description">
             <div class="div-header">Additional:</div>
             <p>Uploaded files must be formatted as .txt</p>
-            <p>Input data must be a list protein sequences that are of the same length with only one sequence per line</p>
-            <p>For optimal analysis of your data, it is recommended to apply a filter to your input data that will only select substrates with a preferred residue(s) at a single position in the substrate</p>
+            <p>Input data must be a set protein sequences that are of the same length with only one sequence per line in the input file.</p>
+            <p>For optimal analysis of your data, it is recommended to apply a filter to your input data.<br>Example: use a set of substrates all contain a preferred residue at a single position in the sequence.</p>
             <p>To visualize the analysis on a template dataset, run the script without uploading a Text file.</p>
             <p>{{ pg6|safe }}
         </div>

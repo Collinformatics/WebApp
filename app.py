@@ -68,22 +68,24 @@ def home():
         fontSize=16,
         borderRad=5,
 
-        pg1="For enzymes that "
-            " This program will take substrates for a given enzyme and identify the "
-            "Motif, of the recognition sequence within the larger protein sequence. "
-            "The Motif is identified by the positions in the substrate that have "
-            "Entropy scores (∆S) that exceed a entropyMin value.",
+        pg1="For enzymes that interact with protein, and peptide substrates, this "
+            "program will take profiling data for a given enzyme and identify the "
+            "Motif, or the recognition site, within the larger protein sequence. "
+            "The Motif is identified by the positions in the substrate that have an "
+            "Entropy score (∆S) that in is ≥ to a user defined minimum ∆S value.",
         pg2="∆S is evaluated at each position in the substrate sequence and is found by "
             "the difference between the Maximum Entropy (S<sub>Max</sub>) and the "
-            "Shannon Entropy (S<sub>Shannon</sub>)",
+            "Shannon Entropy (S<sub>Shannon</sub>)<br>",
         equation="∆S = S<sub>Max</sub> - S<sub>Shannon</sub> = log<sub>2</sub>(20) - "
                 "∑(-prob<sub>AA</sub> * log<sub>2</sub>(prob<sub>AA</sub>))",
-        pg3="Once we have identified the Motif, we can bin the substrates to select the "
-            "only the recognition sequence. In other words, we remove the parts of the "
-            "substrate that are not important for an Enzyme-Substrate interaction.",
-        pg4="We can count the occurrences of each Motif, and plot this data in a Bar "
-            "Graph, and a Word Cloud. This allows us to display the observed "
-            "combinations of amino acids that fit into the enzymes active site.",
+        pg3="<br>Once the Motif has been have identified, the substrates are binned by "
+            "selecting only the recognition sequence. In other words, the parts of the "
+            "sequence that are not important for an Enzyme-Substrate interaction are "
+            "removed.",
+        pg4="The program will count the occurrences of each Motif, collect the top \"N\" "
+            "number of sequences, and plot this data in a Bar Graphs, and a Word Cloud. "
+            "These figures display the observed combinations of amino acids that fit "
+            "into the enzymes active site.",
         pg5="We can further evaluate the Motif by feeding the data into a Suffix Tree. "
             "This analysis will select only the important residues within the motif, "
             "and plot the amino acids as nodes with lines connecting the observed "
