@@ -525,7 +525,7 @@ def plotBinnedSubstrates(binnedSubs, N, NSelect, entropy, entropyMin, enzymeName
     figWords = plotWordCloud(motifs, N, enzymeName)
 
     # Evaluate: Suffix tree
-    figTrie = plotSuffixTree(motifs, N, NSelect, entropy, entropyMin, enzymeName)
+    figTrie, NBinSubs = plotSuffixTree(motifs, N, NSelect, entropy, entropyMin, enzymeName)
 
 
     return NBinSubs, figBinCounts, figBinProb, figWords, figTrie
@@ -711,7 +711,7 @@ def plotSuffixTree(motifs, N, NSelect, entropy, entropyMin, enzymeName):
 
     # Find motif positions based on entropy threshold
     indexPos = []
-    levelLabels = ['']
+    levelLabels = ['Level: Pos']
     for index in motifPos.index:
         posEntropy = motifPos.loc[index, 'ΔS']
         if posEntropy >= entropyMin:
@@ -873,7 +873,12 @@ def plotSuffixTree(motifs, N, NSelect, entropy, entropyMin, enzymeName):
     xMin, xMax = ax.get_xlim()
     posX = xMin + (coordXMin - xMin)/2
     for index, level in enumerate(levels):
-        label = levelLabels[index]
+        if index == 0:
+            label = levelLabels[index]
+        else:
+            xMin, xMax = ax.get_xlim()
+            posX = xMin + (coordXMin - xMin - 66) / 2
+            label = f'{index}: {levelLabels[index]}'
         ax.text(posX, -level, label, ha='right', va='center', fontsize=inFontSize,
                 fontweight='bold', color='black', transform=ax.transData)
 
@@ -884,4 +889,4 @@ def plotSuffixTree(motifs, N, NSelect, entropy, entropyMin, enzymeName):
     imgStream.seek(0)
     figTrie = base64.b64encode(imgStream.read()).decode('utf-8')
 
-    return figTrie
+    return figTrie, NUniqueTrieMotifs

@@ -204,20 +204,12 @@
 
             // Figure Descriptions
             noteProb = "First the amino acid probabilities are evaluated. This allows for the visualization of how the enzyme's specificity changes the probability distributions.";
-            noteEntropy = "{{ equation|safe }}<br><br>The probability distributions are used to determine which positions in the sequence are important for the substrate recognition.<br><br>A high ∆S value indicates a high degree of specificity at that position.";
-            Note: Mention the ranking of most to least specific positions
-
-            noteWeblogo = "Letter Size = ΔS<sub>Pos</sub> × prob<sub>AA@Pos</sub><br><br>By multiplying the probability of a given residue at a given position by the ∆S value of that position we can obtain a Weblogo.<br><br>In this figure, the more preferred a given residue is, the larger it will be.<br>Additionally, the taller the stack of amino acids is, the more selective the enzyme is for what residues can be found at that position.";
-            Cite ^ (superscript number)
-            noteMotifCounts = "The Positional Entropy is used to extract the Motif from the larger substrate sequence.<br><br>Essentially we remove the non-specific parts of the substrate who's ∆S values are below the threshold value.<br><br>By counting the number of occurrences of each Motif in the dataset, we obtain this figure.";
+            noteEntropy = "{{ equation|safe }}<br><br>The probability distributions are used to determine which positions in the sequence are important for the substrate recognition.<sup>1, 2</sup><br><br>A high ∆S value indicates a high degree of specificity at that position.";
+            noteWeblogo = "Letter Size = ΔS<sub>Pos</sub> × prob<sub>AA@Pos</sub><br><br>By multiplying the probability of a given residue at a given position by the ∆S value of that position we can obtain a Weblogo.<sup>1</sup><br><br>In this figure, the more preferred a given residue is, the larger it will be.<br>Additionally, the taller the stack of amino acids is, the more selective the enzyme is for what residues can be found at that position.";
+            noteMotifCounts = "The Positional Entropy is used to extract the Motif from the larger substrate sequence.<br><br>By removing the non-specific parts of the substrate (residues in the sequence with ∆S values are below the Minimum ∆S value) wan can obtain the Moitf.<br><br>By counting the number of occurrences of each Motif in the dataset, we obtain this figure.";
             noteMotifProb = "This figure uses the Motif counts to determine the probability of finding each Motif in the dataset.";
             noteWords = "The Word Cloud is another way to visualize the preferred Motif. Larger words correspond to Motifs with a high number of counts.";
-            noteTrie = "The Suffix Tree starts with the root node, and ranks the most to least specific positions within the Motif for the positions with ∆S values that are above the threshold value.
-            In this case that means the most specific position in the motif is at R4, followed by R3, then R5 and finally R1. In other words the levels are not going to be in sequential order.
-            
-            <br><br>Each level includes the residues that are found at the corresponding substrate position, and the size of the node is proportional to the probability of finding the residue within the set of selected Motifs.";
-            ^ threshod -> Min dS
-
+            noteTrie = "The Suffix Tree starts with the root node, and then displays the positions within the Motif in the ranked descending order of their ∆S value. In other words, the levels are not going to be in same sequential order of as displayed in the Motif. Any positions within the Motif that have a ∆S value that is below the Minimum ∆S value will be excluded from this figure.<br><br>Each level includes the residues that are found at the corresponding substrate position, and the size of the node is proportional to the probability of finding the residue within the set of selected Motifs at that position.";
 
 
             // Now insert into the HTML
@@ -225,8 +217,8 @@
                 <div class="div-header">Results:</div>
                 <div class="container-params">
                     <p><strong>Enzyme:</strong> ${enzymeName}</p>
-                    <p><strong>Min Entropy:</strong> ${entropyMin}</p>
-                    <p><strong>Selecting Substrates:</strong> ${data.NBinSubs}</p>
+                    <p><strong>Minimum ∆S:</strong> ${entropyMin}</p>
+                    <p><strong>Selecting Substrates:</strong> ${data.NSelect}</p>
                     <p><strong>Unique Motifs Obtained:</strong> ${data.NBinSubs}</p>
                 </div>
                 <div class="container-fig">
@@ -338,13 +330,13 @@
             <div class="div-header">Citations:</div>
 
             <p>
-                <a href="https://genome.cshlp.org/content/14/6/1188.full" target="_blank">
+                1)  <a href="https://genome.cshlp.org/content/14/6/1188.full" target="_blank">
                     Crooks, G. E., et al. Genome Research. (2004)
                 </a>
             </p>
 
             <p>
-                <a href="https://www.cambridge.org/core/journals/mathematical-structures-in-computer-science/article/shannon-entropy-a-rigorous-notion-at-the-crossroads-between-probability-information-theory-dynamical-systems-and-statistical-physics/4A4B7B069BCF64CC595635D865317C83" target="_blank">
+                2)  <a href="https://www.cambridge.org/core/journals/mathematical-structures-in-computer-science/article/shannon-entropy-a-rigorous-notion-at-the-crossroads-between-probability-information-theory-dynamical-systems-and-statistical-physics/4A4B7B069BCF64CC595635D865317C83" target="_blank">
                     Lesne, Annick.  Mathematical Structures in Computer Science. (2014)
                 </a>
             </p>
@@ -366,7 +358,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="entropyMin">Minimum Entropy Score:</label>
+                    <label for="entropyMin">Minimum ∆S Value:</label>
                     <input type="number" id="entropyMin" name="entropyMin" step="0.05" value="0.6" required>
                 </div>
 
