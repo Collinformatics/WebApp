@@ -1,11 +1,11 @@
 from flask import Flask, jsonify, render_template, request
-from functions import Webpage
+from functions import WebApp
 
 
 app = Flask(__name__)
 
 # Initialize: Application
-web = Webpage()
+web = WebApp()
 
 
 @app.route('/run', methods=['POST'])
@@ -18,7 +18,6 @@ def run():
 
     except Exception as e:
         return jsonify({"error": f"Error: {str(e)}"}), 400
-
 
 
 

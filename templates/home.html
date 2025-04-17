@@ -12,16 +12,19 @@
             h1 {
                 text-align: center;
                 font-size: 35px;
+                color: #{{ white }};
                 padding-bottom: 20px;
             }
             h2 {
                 text-align: center;
                 font-size: 25px;
+                color: #{{ white }};
                 padding: 10px;
             }
             p {
                 font-size: {{ fontSize }}px;
                 text-align: left;
+                color: #{{ white }};
                 padding-top: 0px;
                 padding-bottom: 0px;
             }
@@ -29,19 +32,10 @@
                 display: block;
                 font-size: {{ fontSize }}px;
                 text-align: center;
+                color: #{{ white }};
                 padding-top: 0px;
                 padding-bottom: 0px;
                 margin: {{ spacer }}px auto;
-            }
-            .container-description {
-                background-color: {{ grey }};
-                color: {{ white }};
-                font-size: 20px;
-                text-align: center;
-                border-radius: {{ borderRad }}px;
-                line-height: 1.4;
-                margin: 20px auto;
-                padding: 20px;
             }
             .container {
                 background-color: {{ grey }};
@@ -54,6 +48,16 @@
                 padding: {{ padTB }}px {{ padSide }}px {{ marginB }}px {{ padSide }}px;
                 margin: {{ spacer }}px auto;
                 margin-bottom: {{ marginB }}px;
+            }
+            .container-description {
+                background-color: {{ grey }};
+                font-size: 20px;
+                text-align: center;
+                color: {{ white }};
+                border-radius: {{ borderRad }}px;
+                line-height: 1.4;
+                margin: 20px auto;
+                padding: 20px;
             }
             .container-input {
                 background-color: {{ grey }};

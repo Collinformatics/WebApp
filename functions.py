@@ -1,30 +1,9 @@
 import base64
 import io
-import matplotlib
-import matplotlib.pyplot as plt
-import networkx as nx
-import numpy as np
-import pandas as pd
 
 
 
-# Figure parameters
-labelSizeTitle = 18
-labelSizeAxis = 16
-labelSizeTicks = 13
-lineThickness = 1.5
-tickLength = 4
-figSize = (12, 9)
-figBorders = [0.882, 0.075, 0.05, 0.98]
-dpi = 300
-
-
-# Set matplotlib backend as non-interactive
-matplotlib.use('Agg')
-
-
-
-class Webpage:
+class WebApp:
     def __init__(self):
         self.buttonState = False
         self.message = ''
@@ -41,6 +20,25 @@ class Webpage:
 
 
     def makeFigure(data):
+        import matplotlib
+        import matplotlib.pyplot as plt
+        import numpy as np
+        import pandas as pd
+
+        # Set matplotlib backend as non-interactive
+        matplotlib.use('Agg')
+
+        # Figure parameters
+        labelSizeTitle = 18
+        labelSizeAxis = 16
+        labelSizeTicks = 13
+        lineThickness = 1.5
+        tickLength = 4
+        figSize = (12, 9)
+        figBorders = [0.882, 0.075, 0.05, 0.98]
+        dpi = 300
+
+
         # Plot the heatmap with numbers centered inside the squares
         fig, ax = plt.subplots(figsize=figSize, dpi=dpi)
         ax.set_xlabel('X Label', fontsize=labelSizeAxis)
