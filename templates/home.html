@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Application</title>
+        <style>
+            body {
+                background-color: {{ black }};
+                color: #{{ white }};
+                font-family: Arial, sans-serif;
+                padding: 40px;
+            }
+            h1 {
+                text-align: center;
+                font-size: 35px;
+                padding-bottom: 20px;
+            }
+            h2 {
+                text-align: center;
+                font-size: 25px;
+                padding: 10px;
+            }
+            p {
+                font-size: {{ fontSize }}px;
+                text-align: left;
+                padding-top: 0px;
+                padding-bottom: 0px;
+            }
+            p2 {
+                display: block;
+                font-size: {{ fontSize }}px;
+                text-align: center;
+                padding-top: 0px;
+                padding-bottom: 0px;
+                margin: {{ spacer }}px auto;
+            }
+            .container-description {
+                background-color: {{ grey }};
+                color: {{ white }};
+                font-size: 20px;
+                text-align: center;
+                border-radius: {{ borderRad }}px;
+                line-height: 1.4;
+                margin: 20px auto;
+                padding: 20px;
+            }
+            .container {
+                background-color: {{ grey }};
+                font-size: 20px;
+                text-align: center;
+                border-radius: {{ borderRad }}px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: {{ padTB }}px {{ padSide }}px {{ marginB }}px {{ padSide }}px;
+                margin: {{ spacer }}px auto;
+                margin-bottom: {{ marginB }}px;
+            }
+            .container-input {
+                background-color: {{ grey }};
+                font-size: 20px;
+                text-align: center;
+                border-radius: {{ borderRad }}px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 0px 0px 0px 0px;
+                margin: {{ spacer }}px auto;
+                margin-bottom: {{ marginB }}px;
+            }
+            .container-params {
+                background-color: {{ grey }};
+                font-size: 20px;
+                border-radius: {{ borderRad }}px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                line-height: 0.01;
+                padding: 0px 0px 0px 0px;
+                margin: 5px auto;
+            }
+            .container-figDescription {
+                font-size: 18px;
+                text-align: center;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 5px 0px 0px 0px;
+                margin: 0px auto;
+            }
+            .container-fig {
+                background-color: {{ grey }};
+                font-size: 20px;
+                text-align: center;
+                max-width: 800px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 50px 0px 0px 0px;
+                margin: 5px auto;
+                margin-top: 0px
+            }
+            .container-fig img {
+                margin-top: 0px;
+            }
+            .div-header {
+                color: {{ green }};
+                font-size: 22px;
+                font-weight: normal;
+                padding-top: 0px;
+                padding-bottom: 5px;
+            }
+            input[type="file"] {
+                background-color: {{ black }};
+                color: #101010;
+                font-size: {{ fontSize }}px;
+                border: 2px solid {{ greyDark }};
+                border-radius: {{ borderRad }}px;
+                width: 100%;
+                max-width: 350px;
+                padding: {{ padInput }}px;
+                margin-bottom: {{ padTB }}px;
+            }
+            button {
+                background-color: {{ green }};
+                color: {{ white }};
+                font-size: {{ fontSize }}px;
+                cursor: pointer;
+                border: none;
+                border-radius: {{ borderRad }}px;
+                padding: 8px 20px;
+                margin-top: {{ marginButton }}px;
+                margin-bottom: {{ marginButton }}px;
+            }
+            button:hover {
+                background-color: {{ greenHighlight }};
+            }
+            .input-form {
+                align-items: center;
+                text-align: center; /* center form text */
+                display: flex;
+                flex-direction: column;
+                font-size: {{ fontSize }}px;
+            }
+            .form-group {
+                width: 100%;
+                max-width: 350px;
+                line-height: 1.5;
+            }
+            .form-group label {
+                display: block;
+                margin-bottom: {{ spacerMini }}px;
+                font-size: {{ fontSize }}px;
+                text-align: center;
+            }
+            .form-group input {
+                font-size: {{ fontSize }}px;
+                border-radius: {{ borderRad }}px;
+                border: 2px solid {{ greyDark }};
+                text-align: center;
+                width: 100%;
+                padding: {{ padInput }}px;
+                margin-bottom: {{ spacer }}px;
+            }
+        </style>
+    </head>
+    <script>
+        function evaluateForm(event) {
+            event?.preventDefault(); // Prevent any default form action
+
+            let enzymeName = document.getElementById('enzymeName').value;
+            const entropyMin = document.getElementById('entropyMin').value;
+            const N = document.getElementById('N').value;
+            const textFileInput = document.querySelector('input[name="textFile"]');
+            const textFile = textFileInput.files[0];
+
+            const formData = new FormData();
+            formData.append('enzymeName', enzymeName);
+            formData.append('entropyMin', entropyMin);
+            formData.append('N', N);
+            if (textFile) {
+                formData.append('textFile', textFile);
+            }
+            fetch('/run', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("Network response was not ok");
+                return response.json();
+            })
+            .then(data => {
+                const newDiv = document.createElement('div');
+                newDiv.className = 'container';
+                Object.assign(newDiv.style, {
+                    backgroundColor: "{{ grey }}",
+                    fontSize: "20px",
+                    textAlign: "center",
+                    borderRadius: "{{ borderRad }}px",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    padding: "{{ padTB }}px {{ padSide }}px {{ padTB }}px {{ padSide }}px",
+                    margin: "{{ spacer }}px auto",
+                    marginBottom: "{{ marginB }}px"
+                });
+        }
+    </script>
+    <body>
+        <h1>Application Title</h1>
+        <div class="container-description">
+            <div class="div-header">Description:</div>
+            <p>This is an application template</p>
+        </div>
+
+        <div class="container">
+            <div class="container-input">
+                <form action="/run" method="POST" enctype="multipart/form-data" class="input-form">
+                <div class="div-header">Select Text File:</div>
+                <div class="form-group">
+                    <label for="textFile"></label>
+                    <input type="file" id="textFile" name="textFile" accept=".txt" class="input-form">
+                </div>
+
+                <div class="div-header">Message:</div>
+                <div class="form-group">
+                    <label for="message">Enter A Message:</label>
+                    <input type="text" id="message" name="message" required value="Words">
+                </div>
+
+                    <button type="button" onclick="evaluateForm()">Evaluate</button>
+                </form>
+        </div>
+    </body>
+</html>
