@@ -32,9 +32,9 @@ def run():
 @app.route('/')
 def home():
     return render_template('home.html',
-        black='#151515', white='FFFFFF',
-        grey='#303030', greyDark='#202020',
-        green='#23FF55', greenHighlight='#1AD747',
+        black='#151515', white='#FFFFFF',
+        colorBG='#303030', colorAccent='#454545',
+        colorHeader='#23FF55', buttonHighlight='#1AD747',
         spacer=20, spacerMini=5,
         padSide=50, padTB=30, padInput=8,
         marginB=12, marginButton=12,

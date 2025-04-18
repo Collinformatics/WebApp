@@ -5,26 +5,26 @@
         <style>
             body {
                 background-color: {{ black }};
-                color: #{{ white }};
+                color: {{ white }};
                 font-family: Arial, sans-serif;
                 padding: 40px;
             }
             h1 {
                 text-align: center;
                 font-size: 35px;
-                color: #{{ white }};
+                color: {{ white }};
                 padding-bottom: 20px;
             }
             h2 {
                 text-align: center;
                 font-size: 25px;
-                color: #{{ white }};
+                color: {{ white }};
                 padding: 10px;
             }
             p {
                 font-size: {{ fontSize }}px;
                 text-align: left;
-                color: #{{ white }};
+                color: {{ white }};
                 padding-top: 0px;
                 padding-bottom: 0px;
             }
@@ -32,13 +32,13 @@
                 display: block;
                 font-size: {{ fontSize }}px;
                 text-align: center;
-                color: #{{ white }};
+                color: {{ white }};
                 padding-top: 0px;
                 padding-bottom: 0px;
                 margin: {{ spacer }}px auto;
             }
             .container {
-                background-color: {{ grey }};
+                background-color: {{ colorBG }};
                 font-size: 20px;
                 text-align: center;
                 border-radius: {{ borderRad }}px;
@@ -49,8 +49,8 @@
                 margin: {{ spacer }}px auto;
                 margin-bottom: {{ marginB }}px;
             }
-            .container-description {
-                background-color: {{ grey }};
+            .container-text {
+                background-color: {{ colorBG }};
                 font-size: 20px;
                 text-align: center;
                 color: {{ white }};
@@ -59,8 +59,8 @@
                 margin: 20px auto;
                 padding: 20px;
             }
-            .container-input {
-                background-color: {{ grey }};
+            .container-inputBox {
+                background-color: {{ colorBG }};
                 font-size: 20px;
                 text-align: center;
                 border-radius: {{ borderRad }}px;
@@ -71,30 +71,8 @@
                 margin: {{ spacer }}px auto;
                 margin-bottom: {{ marginB }}px;
             }
-            .container-params {
-                background-color: {{ grey }};
-                font-size: 20px;
-                border-radius: {{ borderRad }}px;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                line-height: 0.01;
-                padding: 0px 0px 0px 0px;
-                margin: 5px auto;
-            }
-            .container-figDescription {
-                font-size: 18px;
-                text-align: center;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                padding: 5px 0px 0px 0px;
-                margin: 0px auto;
-            }
             .container-fig {
-                background-color: {{ grey }};
-                font-size: 20px;
-                text-align: center;
+                background-color: {{ colorBG }};
                 max-width: 800px;
                 display: flex;
                 flex-direction: column;
@@ -103,11 +81,22 @@
                 margin: 5px auto;
                 margin-top: 0px
             }
+             .container-figDescription {
+             color: {{ white }};
+                font-size: 18px;
+                text-align: center;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 5px 0px 0px 0px;
+                margin: 0px auto;
+            }     
+                  
             .container-fig img {
                 margin-top: 0px;
             }
             .div-header {
-                color: {{ green }};
+                color: {{ colorHeader }};
                 font-size: 22px;
                 font-weight: normal;
                 padding-top: 0px;
@@ -117,7 +106,7 @@
                 background-color: {{ black }};
                 color: #101010;
                 font-size: {{ fontSize }}px;
-                border: 2px solid {{ greyDark }};
+                border: 2px solid {{ colorAccent }};
                 border-radius: {{ borderRad }}px;
                 width: 100%;
                 max-width: 350px;
@@ -125,7 +114,7 @@
                 margin-bottom: {{ padTB }}px;
             }
             button {
-                background-color: {{ green }};
+                background-color: {{ colorHeader }};
                 color: {{ white }};
                 font-size: {{ fontSize }}px;
                 cursor: pointer;
@@ -136,7 +125,7 @@
                 margin-bottom: {{ marginButton }}px;
             }
             button:hover {
-                background-color: {{ greenHighlight }};
+                background-color: {{ buttonHighlight }};
             }
             .input-form {
                 align-items: center;
@@ -159,7 +148,7 @@
             .form-group input {
                 font-size: {{ fontSize }}px;
                 border-radius: {{ borderRad }}px;
-                border: 2px solid {{ greyDark }};
+                border: 2px solid {{ colorAccent }};
                 text-align: center;
                 width: 100%;
                 padding: {{ padInput }}px;
@@ -171,23 +160,30 @@
         function evaluateForm(event) {
             event?.preventDefault(); // Prevent any default form action
 
-            let enzymeName = document.getElementById('enzymeName').value;
-            const entropyMin = document.getElementById('entropyMin').value;
-            const N = document.getElementById('N').value;
-            const textFileInput = document.querySelector('input[name="textFile"]');
+            // Handle the inputs
+            let message = document.getElementById('message').value;
             const textFile = textFileInput.files[0];
 
+            // Inspect input field
+            if (!message) {
+                alert("Please fill out all required fields.");
+                return;
+            }
+
+            // Make a form for the inputs
             const formData = new FormData();
-            formData.append('enzymeName', enzymeName);
-            formData.append('entropyMin', entropyMin);
-            formData.append('N', N);
+            formData.append('message', message); // Add input to the form
             if (textFile) {
                 formData.append('textFile', textFile);
             }
+
+            // Pass the form to the backend script
             fetch('/run', {
                 method: 'POST',
                 body: formData
             })
+
+            // Inspect run
             .then(response => {
                 if (!response.ok) throw new Error("Network response was not ok");
                 return response.json();
@@ -196,7 +192,8 @@
                 const newDiv = document.createElement('div');
                 newDiv.className = 'container';
                 Object.assign(newDiv.style, {
-                    backgroundColor: "{{ grey }}",
+                    backgroundColor: "{{ colorBG }}",
+                    color: {{ white }},
                     fontSize: "20px",
                     textAlign: "center",
                     borderRadius: "{{ borderRad }}px",
@@ -207,17 +204,44 @@
                     margin: "{{ spacer }}px auto",
                     marginBottom: "{{ marginB }}px"
                 });
+            
+            
+            
+            
+            // Pass data into the HTML script
+            newDiv.innerHTML = `
+                <div class="div-header">Message:</div>
+                <div class="container-fig">
+                    <div class="div-header">
+                        Message:
+                    </div>
+                    <p>${noteProb}</p>
+                    <p2><img src="data:image/png;base64,${data.figProb}"
+                        alt="Probability Plot" style="max-width: 100%;" /></p2>
+                </div>
+            `;
+
+            document.body.appendChild(newDiv);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'container';
+                errorDiv.innerHTML = `<p style="color: red;">
+                    Error fetching results: ${error.message}</p>`;
+                document.body.appendChild(errorDiv);
+            });
         }
     </script>
     <body>
         <h1>Application Title</h1>
-        <div class="container-description">
+        <div class="container-text">
             <div class="div-header">Description:</div>
             <p>This is an application template</p>
         </div>
 
         <div class="container">
-            <div class="container-input">
+            <div class="container-inputBox">
                 <form action="/run" method="POST" enctype="multipart/form-data" class="input-form">
                 <div class="div-header">Select Text File:</div>
                 <div class="form-group">
