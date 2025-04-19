@@ -11,16 +11,15 @@ web = WebApp()
 @app.route('/run', methods=['POST'])
 def run():
     try:
-        uploadFile = request.files.get('uploadFile')
         message = request.form.get('message')
-
-        web.pressButton()
+        messages = web.getMessage(message)
 
     except Exception as e:
         return jsonify({"error": f"Error: {str(e)}"}), 400
 
     result = {
         "message": message,
+        "messages": messages,
     }
 
     return jsonify(result)

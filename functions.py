@@ -6,16 +6,15 @@ import io
 class WebApp:
     def __init__(self):
         self.buttonState = False
-        self.message = ''
+        self.messages = []
 
 
 
-    def pressButton(self):
-        if self.buttonState:
-            self.buttonState = False
-        else:
-            self.buttonState = True
-        print(f'Button State: {self.buttonState}')
+    def getMessage(self, message):
+        self.messages.append(message)
+        print(f'Received Message: {message}')
+
+        return self.messages
 
 
 
