@@ -41,6 +41,7 @@ class WebApp:
 
         # Plot the heatmap with numbers centered inside the squares
         fig, ax = plt.subplots(figsize=figSize, dpi=dpi)
+        # =============== Define figure here ===============
         ax.set_xlabel('X Label', fontsize=labelSizeAxis)
         ax.set_ylabel('Y Label', fontsize=labelSizeAxis)
         plt.title('Title', fontsize=labelSizeTitle, fontweight='bold')
