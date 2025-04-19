@@ -11,22 +11,19 @@ web = WebApp()
 @app.route('/run', methods=['POST'])
 def run():
     try:
-        message = request.files.get('message')
-        print(f'Received message: {message}')
+        uploadFile = request.files.get('uploadFile')
+        message = request.form.get('message')
 
-        web.buttonState()
+        web.pressButton()
 
     except Exception as e:
         return jsonify({"error": f"Error: {str(e)}"}), 400
 
+    result = {
+        "message": message,
+    }
 
-
-    # result = {
-    #     "message": enzymeName,
-    #     "entropyMin": entropyMin,
-    # }
-    #
-    # return jsonify(result)
+    return jsonify(result)
 
 
 @app.route('/')
@@ -36,7 +33,7 @@ def home():
         colorBG='#303030', colorAccent='#454545',
         colorHeader='#23FF55', buttonHighlight='#1AD747',
         spacer=20, spacerMini=5,
-        padSide=50, padTB=30, padInput=8,
+        padSide=25, padTB=30, padInput=8,
         marginB=12, marginButton=12,
         fontSize=16,
         borderRad=5,

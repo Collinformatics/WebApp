@@ -7,13 +7,15 @@
                 background-color: {{ black }};
                 color: {{ white }};
                 font-family: Arial, sans-serif;
-                padding: 40px;
+                padding: 15px;
+                margin: 0px auto;
             }
             h1 {
                 text-align: center;
                 font-size: 35px;
                 color: {{ white }};
-                padding-bottom: 20px;
+                padding: 10px;
+                margin: 0px auto;
             }
             h2 {
                 text-align: center;
@@ -42,8 +44,6 @@
                 font-size: 20px;
                 text-align: center;
                 border-radius: {{ borderRad }}px;
-                display: flex;
-                flex-direction: column;
                 align-items: center;
                 padding: {{ padTB }}px {{ padSide }}px {{ marginB }}px {{ padSide }}px;
                 margin: {{ spacer }}px auto;
@@ -56,11 +56,11 @@
                 color: {{ white }};
                 border-radius: {{ borderRad }}px;
                 line-height: 1.4;
-                margin: 20px auto;
-                padding: 20px;
+                margin: 0px auto;
+                padding: 0px;
             }
             .container-inputBox {
-                background-color: {{ colorBG }};
+                background-color: "#004500";
                 font-size: 20px;
                 text-align: center;
                 border-radius: {{ borderRad }}px;
@@ -90,8 +90,7 @@
                 align-items: center;
                 padding: 5px 0px 0px 0px;
                 margin: 0px auto;
-            }     
-                  
+            }
             .container-fig img {
                 margin-top: 0px;
             }
@@ -129,14 +128,14 @@
             }
             .input-form {
                 align-items: center;
-                text-align: center; /* center form text */
+                text-align: center;
                 display: flex;
                 flex-direction: column;
                 font-size: {{ fontSize }}px;
             }
             .form-group {
                 width: 100%;
-                max-width: 350px;
+                max-width: 1000px;
                 line-height: 1.5;
             }
             .form-group label {
@@ -149,114 +148,108 @@
                 font-size: {{ fontSize }}px;
                 border-radius: {{ borderRad }}px;
                 border: 2px solid {{ colorAccent }};
-                text-align: center;
+                text-align: left;
                 width: 100%;
                 padding: {{ padInput }}px;
                 margin-bottom: {{ spacer }}px;
             }
+            .containerTextbox {
+                width: 100%;
+                height: 300px; /* Increase for more vertical space */
+                font-family: sans-serif;
+                font-size: 18px;
+                line-height: 1.5;
+                padding: 12px;
+                border-radius: {{ borderRad }}px;
+                border: 2px solid {{ colorAccent }};
+                resize: vertical; /* Allows resizing up/down */
+                box-sizing: border-box;
+            }
         </style>
     </head>
-    <script>
-        function evaluateForm(event) {
-            event?.preventDefault(); // Prevent any default form action
-
-            // Handle the inputs
-            let message = document.getElementById('message').value;
-            const textFile = textFileInput.files[0];
-
-            // Inspect input field
-            if (!message) {
-                alert("Please fill out all required fields.");
-                return;
-            }
-
-            // Make a form for the inputs
-            const formData = new FormData();
-            formData.append('message', message); // Add input to the form
-            if (textFile) {
-                formData.append('textFile', textFile);
-            }
-
-            // Pass the form to the backend script
-            fetch('/run', {
-                method: 'POST',
-                body: formData
-            })
-
-            // Inspect run
-            .then(response => {
-                if (!response.ok) throw new Error("Network response was not ok");
-                return response.json();
-            })
-            .then(data => {
-                const newDiv = document.createElement('div');
-                newDiv.className = 'container';
-                Object.assign(newDiv.style, {
-                    backgroundColor: "{{ colorBG }}",
-                    color: {{ white }},
-                    fontSize: "20px",
-                    textAlign: "center",
-                    borderRadius: "{{ borderRad }}px",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    padding: "{{ padTB }}px {{ padSide }}px {{ padTB }}px {{ padSide }}px",
-                    margin: "{{ spacer }}px auto",
-                    marginBottom: "{{ marginB }}px"
-                });
-            
-            
-            
-            
-            // Pass data into the HTML script
-            newDiv.innerHTML = `
-                <div class="div-header">Message:</div>
-                <div class="container-fig">
-                    <div class="div-header">
-                        Message:
-                    </div>
-                    <p>${noteProb}</p>
-                    <p2><img src="data:image/png;base64,${data.figProb}"
-                        alt="Probability Plot" style="max-width: 100%;" /></p2>
-                </div>
-            `;
-
-            document.body.appendChild(newDiv);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                const errorDiv = document.createElement('div');
-                errorDiv.className = 'container';
-                errorDiv.innerHTML = `<p style="color: red;">
-                    Error fetching results: ${error.message}</p>`;
-                document.body.appendChild(errorDiv);
-            });
-        }
-    </script>
     <body>
         <h1>Application Title</h1>
-        <div class="container-text">
+        <div class="container">
             <div class="div-header">Description:</div>
-            <p>This is an application template</p>
+            <div class="container-text">
+                <p>This is an application template</p>
+            </div>
         </div>
 
         <div class="container">
-            <div class="container-inputBox">
-                <form action="/run" method="POST" enctype="multipart/form-data" class="input-form">
-                <div class="div-header">Select Text File:</div>
-                <div class="form-group">
-                    <label for="textFile"></label>
-                    <input type="file" id="textFile" name="textFile" accept=".txt" class="input-form">
-                </div>
-
-                <div class="div-header">Message:</div>
+            <form action="/run" method="POST" enctype="multipart/form-data" class="input-form">
+                <div class="div-header">Application:</div>
                 <div class="form-group">
                     <label for="message">Enter A Message:</label>
-                    <input type="text" id="message" name="message" required value="Words">
+                    <textarea type="text" id="message" name="message" required class="containerTextbox" value=""></textarea>
                 </div>
-
-                    <button type="button" onclick="evaluateForm()">Evaluate</button>
-                </form>
+                <button type="button" onclick="evaluateForm(event)">Evaluate</button>
+            </form>
         </div>
+        <script>
+            function evaluateForm(event) {
+                event.preventDefault(); // Prevent any default form action
+
+                // Handle the inputs
+                let message = document.getElementById('message').value;
+
+                // Inspect input field
+                if (!message) {
+                    alert("Please fill out all required fields.");
+                    return;
+                }
+
+                // Make a form for the inputs
+                const formData = new FormData();
+                formData.append('message', message); // Add input to the form
+
+                // Pass the form to the backend script
+                fetch('/run', {
+                    method: 'POST',
+                    body: formData
+                })
+
+                // Inspect run
+                .then(response => {
+                    if (!response.ok) throw new Error("Run failed, please try again.");
+                    return response.json();
+                })
+                .then(data => {
+                    const newDiv = document.createElement('div');
+                    newDiv.className = 'container';
+                    Object.assign(newDiv.style, {
+                        backgroundColor: "{{ colorBG }}",
+                        color: "{{ white }}",
+                        fontSize: "20px",
+                        textAlign: "center",
+                        borderRadius: "{{ borderRad }}px",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        padding: "{{ padTB }}px {{ padSide }}px {{ padTB }}px {{ padSide }}px",
+                        margin: "{{ spacer }}px auto",
+                        marginBottom: "{{ marginB }}px"
+                    });
+
+                // Pass data into the HTML script
+                newDiv.innerHTML = `
+                    <div class="div-header">Message:</div>
+                    <div class="container-text">
+                        <p>${data.message}</p>
+                    </div>
+                `;
+
+                document.body.appendChild(newDiv);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'container';
+                    errorDiv.innerHTML = `<p style="color: red;">
+                        Error fetching results: ${error.message}</p>`;
+                    document.body.appendChild(errorDiv);
+                });
+            }
+        </script>
     </body>
 </html>
