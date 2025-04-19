@@ -1,6 +1,6 @@
 # Purpose:
 
-This is a template for a website
+This is a template for a website that runs Python on the backend
 
 # Install Modules:
 
