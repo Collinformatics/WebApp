@@ -1,0 +1,200 @@
+:root {
+    --black: #151515;
+    --white: #FFFFFF;
+    --colorBG: #303030;
+    --colorAccent: #454545;
+    --colorHeader: #23FF55;
+    --buttonHighlight: #1AD747;
+
+    --spacer: 20px;
+    --spacerMini: 5px;
+    --padSide: 25px;
+    --padTB: 30px;
+    --padInput: 8px;
+    --marginB: 12px;
+    --marginButton: 12px;
+    --fontSize: 16px;
+    --borderRad: 5px;
+}
+
+body {
+    background-color: var(--black);
+    color: var(--white);
+    font-family: Arial, sans-serif;
+    padding: 15px;
+    margin: 0px auto;
+}
+
+h1 {
+    text-align: center;
+    font-size: 35px;
+    color: var(--white);
+    padding: 10px;
+    margin: 0px auto;
+}
+
+h2 {
+    text-align: center;
+    font-size: 25px;
+    color: var(--white);
+    padding: 10px;
+}
+
+p {
+    font-size: var(--fontSize);
+    text-align: left;
+    color: var(--white);
+    padding-top: 0px;
+    padding-bottom: 0px;
+}
+
+p2 {
+    display: block;
+    font-size: var(--fontSize);
+    text-align: center;
+    color: var(--white);
+    padding-top: 0px;
+    padding-bottom: 0px;
+    margin: var(--spacer) auto;
+}
+
+.container {
+    background-color: var(--colorBG);
+    font-size: 20px;
+    text-align: center;
+    border-radius: var(--borderRad);
+    align-items: center;
+    padding: var(--padTB) var(--padSide) var(--marginB) var(--padSide);
+    margin: var(--spacer) auto;
+    margin-bottom: var(--marginB);
+}
+
+.container-text {
+    background-color: var(--colorBG);
+    font-size: 20px;
+    text-align: center;
+    color: var(--white);
+    border-radius: var(--borderRad);
+    line-height: 1.4;
+    margin: 0px auto;
+    padding: 0px;
+}
+
+.container-inputBox {
+    background-color: #004500;
+    font-size: 20px;
+    text-align: center;
+    border-radius: var(--borderRad);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0px;
+    margin: var(--spacer) auto;
+    margin-bottom: var(--marginB);
+}
+
+.container-fig {
+    background-color: var(--colorBG);
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 50px 0px 0px 0px;
+    margin: 5px auto;
+    margin-top: 0px;
+}
+
+.container-figDescription {
+    color: var(--white);
+    font-size: 18px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 5px 0px 0px 0px;
+    margin: 0px auto;
+}
+
+.container-fig img {
+    margin-top: 0px;
+}
+
+.div-header {
+    color: var(--colorHeader);
+    font-size: 22px;
+    font-weight: normal;
+    padding-top: 0px;
+    padding-bottom: 5px;
+}
+
+input[type="file"] {
+    background-color: var(--black);
+    color: #101010;
+    font-size: var(--fontSize);
+    border: 2px solid var(--colorAccent);
+    border-radius: var(--borderRad);
+    width: 100%;
+    max-width: 350px;
+    padding: var(--padInput);
+    margin-bottom: var(--padTB);
+}
+
+button {
+    background-color: var(--colorHeader);
+    color: var(--white);
+    font-size: var(--fontSize);
+    cursor: pointer;
+    border: none;
+    border-radius: var(--borderRad);
+    padding: 8px 20px;
+    margin-top: var(--marginButton);
+    margin-bottom: var(--marginButton);
+}
+
+button:hover {
+    background-color: var(--buttonHighlight);
+}
+
+.input-form {
+    align-items: center;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    font-size: var(--fontSize);
+}
+
+.form-group {
+    width: 100%;
+    max-width: 1000px;
+    line-height: 1.5;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: var(--spacerMini);
+    font-size: var(--fontSize);
+    text-align: center;
+}
+
+.form-group input {
+    font-size: var(--fontSize);
+    border-radius: var(--borderRad);
+    border: 2px solid var(--colorAccent);
+    text-align: left;
+    width: 100%;
+    padding: var(--padInput);
+    margin-bottom: var(--spacer);
+}
+
+.containerTextbox {
+    width: 100%;
+    height: 300px;
+    font-family: sans-serif;
+    font-size: 18px;
+    line-height: 1.5;
+    padding: 12px;
+    border-radius: var(--borderRad);
+    border: 2px solid var(--colorAccent);
+    resize: vertical;
+    box-sizing: border-box;
+}
