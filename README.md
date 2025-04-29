@@ -17,9 +17,16 @@ Leaving the process running can be a significant drain on your battery, so its b
 
         lsof -i :5000
 
-    Use the process ID to terminate the Python:
+    Inspect output, and look for "Python" in the "COMMAND" column:
 
-        kill 
+        COMMAND     PID     NODE NAME
+        Python    49231 ... 0t0  TCP localhost:commplex-main (LISTEN)
+        Python    49288 ... 0t0  TCP localhost:commplex-main (LISTEN)
+        Python    49288 ... 0t0  TCP localhost:commplex-main (LISTEN)
+
+    Use the Process ID (49231, 49288) to terminate these processes:
+
+         kill 49231 49288 
 
 - Windows
 
@@ -27,15 +34,15 @@ Leaving the process running can be a significant drain on your battery, so its b
 
         netstat -ano | findstr :5000
     
-    - Command output:
+     Inspect output, and look for the process ID (20352):
 
-            TCP    127.0.0.1:5000         0.0.0.0:0              LISTENING       20352
+        TCP    127.0.0.1:5000         0.0.0.0:0              LISTENING       20352
 
     Lists all running tasks with matching process ID:
 
         tasklist /FI "PID eq 20352"
 
-    - Command output:
+    Inspect output, and look for "Python" in the "Image Name" column:
   
             Image Name                     PID Session Name        Session#    Mem Usage
             ========================= ======== ================ =========== ============
@@ -44,7 +51,3 @@ Leaving the process running can be a significant drain on your battery, so its b
     Kill the process:
 
         taskkill /PID 20352 /F
-
-    - Command output:
-
-            SUCCESS: The process with PID 20352 has been terminated.
