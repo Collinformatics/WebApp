@@ -13,16 +13,17 @@ You will need to install the following Python modules:
 Leaving the process running can be a significant drain on your battery, so its best to turn things off after you are done.
 
 - MacOS:
+
     List open files on port 5000:
 
         lsof -i :5000
 
     - Inspect output, and look for "Python" in the "COMMAND" column:
 
-        COMMAND     PID     NODE NAME
-        Python    49231 ... 0t0  TCP localhost:commplex-main (LISTEN)
-        Python    49288 ... 0t0  TCP localhost:commplex-main (LISTEN)
-        Python    49288 ... 0t0  TCP localhost:commplex-main (LISTEN)
+            COMMAND     PID     NODE NAME
+            Python    49231 ... 0t0  TCP localhost:commplex-main (LISTEN)
+            Python    49288 ... 0t0  TCP localhost:commplex-main (LISTEN)
+            Python    49288 ... 0t0  TCP localhost:commplex-main (LISTEN)
 
     Use the Process ID (49231, 49288) to terminate these processes:
 
@@ -36,7 +37,7 @@ Leaving the process running can be a significant drain on your battery, so its b
     
      - Inspect output, and look for the process ID (20352):
 
-        TCP    127.0.0.1:5000         0.0.0.0:0              LISTENING       20352
+            TCP    127.0.0.1:5000         0.0.0.0:0              LISTENING       20352
 
     Lists all running tasks with matching process ID:
 
