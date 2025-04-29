@@ -17,7 +17,7 @@ Leaving the process running can be a significant drain on your battery, so its b
 
         lsof -i :5000
 
-    Inspect output, and look for "Python" in the "COMMAND" column:
+    - Inspect output, and look for "Python" in the "COMMAND" column:
 
         COMMAND     PID     NODE NAME
         Python    49231 ... 0t0  TCP localhost:commplex-main (LISTEN)
@@ -34,7 +34,7 @@ Leaving the process running can be a significant drain on your battery, so its b
 
         netstat -ano | findstr :5000
     
-     Inspect output, and look for the process ID (20352):
+     - Inspect output, and look for the process ID (20352):
 
         TCP    127.0.0.1:5000         0.0.0.0:0              LISTENING       20352
 
@@ -42,7 +42,7 @@ Leaving the process running can be a significant drain on your battery, so its b
 
         tasklist /FI "PID eq 20352"
 
-    Inspect output, and look for "Python" in the "Image Name" column:
+    - Inspect output, and look for "Python" in the "Image Name" column:
   
             Image Name                     PID Session Name        Session#    Mem Usage
             ========================= ======== ================ =========== ============
