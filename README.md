@@ -8,9 +8,11 @@ You will need to install the following Python modules:
 
     pip install Flask
 
-# Terminate Server:
+# Terminating The Server:
 
 Leaving the process running can be a significant drain on your battery, so its best to turn things off after you are done.
+
+The commands you enter into the terminal will depend upon your OS:
 
 - MacOS:
 
