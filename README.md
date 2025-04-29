@@ -45,7 +45,7 @@ The commands you enter into the terminal will depend upon your OS:
 
         tasklist /FI "PID eq 20352"
 
-    - Inspect output, and look for "Python" in the "Image Name" column:
+    - Inspect output, and look for "python.exe" in the "Image Name" column:
   
             Image Name                     PID Session Name        Session#    Mem Usage
             ========================= ======== ================ =========== ============
